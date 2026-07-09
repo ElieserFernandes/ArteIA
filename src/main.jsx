@@ -11,10 +11,14 @@ const tipos = [
 
 function money(v){ return Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
 
-function ExemploArte({tipo}){
-  return <div className={'exemploArte exemplo'+tipo.id}>
-    <span>Imagem exemplo</span>
-  </div>
+function ExemploArte({ tipo }) {
+  if (tipo.id === 'DESENHO') {
+    return <div className="exemploArte exemploReal"><img src="/exemplos/desenho.svg" alt="Exemplo arte desenho" /></div>
+  }
+  if (tipo.id === 'ROSTO') {
+    return <div className="exemploArte exemploReal"><img src="/exemplos/rosto.svg" alt="Exemplo arte rosto" /></div>
+  }
+  return <div className="exemploArte exemploCombo"><div className="comboGrid"><img src="/exemplos/desenho.svg" alt="Exemplo desenho" /><img src="/exemplos/rosto.svg" alt="Exemplo rosto" /></div></div>
 }
 
 function Landing(){
