@@ -11,7 +11,7 @@ const tipos = [
 
 function money(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
 
-export default function App(){
+function App(){
   const [form,setForm]=useState({tipo_arte:'COMBO',nome:'',whatsapp:'',cidade:'',estado:'',nome_arte:'',profissao:'',telefone_arte:'',cor_predominante:'',servicos:'',detalhes:''})
   const [foto,setFoto]=useState(null); const [logo,setLogo]=useState(null); const [loading,setLoading]=useState(false); const [ok,setOk]=useState(false); const [erro,setErro]=useState('')
   const tipo = tipos.find(t=>t.id===form.tipo_arte)
@@ -81,3 +81,5 @@ export default function App(){
     </form>
   </main>
 }
+
+createRoot(document.getElementById('root')).render(<App />)
