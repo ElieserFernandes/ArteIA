@@ -17,21 +17,11 @@ function ExemploArte({ tipo }) {
   return <div className="exemploArte exemploCombo"><div className="comboGrid"><img src="/exemplos/desenho.svg" alt="Exemplo desenho" /><img src="/exemplos/rosto.svg" alt="Exemplo rosto" /></div></div>
 }
 
-function PrecoCard({ tipo }) {
-  return <article className={'precoCard '+(tipo.id === 'COMBO' ? 'destaque' : '')}>
-    {tipo.id === 'COMBO' && <em>MAIS VENDIDO</em>}
-    <h2>{tipo.titulo}</h2>
-    <p>{tipo.texto}</p>
-    <strong>{money(tipo.preco)}</strong>
-  </article>
-}
-
 function Landing(){
   return <main className="landing">
     <nav className="nav"><strong>🎨 Promova Profissional</strong><a href="/pedido">Fazer pedido</a></nav>
-    <section className="landingHero">
+    <section className="landingHero landingHeroSolo">
       <div className="heroText"><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua divulgação profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
-      <div className="heroPrices">{tipos.map(t=><PrecoCard key={t.id} tipo={t}/>)}</div>
     </section>
     <section className="landingCards">
       {tipos.map(t=><article key={t.id}><div className="cardHead"><h2>{t.titulo}</h2><strong>{money(t.preco)}</strong></div><p>{t.texto}</p><ExemploArte tipo={t}/></article>)}
