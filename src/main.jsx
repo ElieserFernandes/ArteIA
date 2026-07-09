@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { supabase } from './lib/supabase'
 import './style.css'
@@ -9,9 +9,9 @@ const tipos = [
   { id:'COMBO', titulo:'🔥 COMBO', preco:24.90, texto:'Receba as duas artes: DESENHO + ROSTO. Melhor custo-benefício.' }
 ]
 
-function money(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
+function money(v){ return Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
 
-function App(){
+function Formulario(){
   const [form,setForm]=useState({tipo_arte:'COMBO',nome:'',whatsapp:'',cidade:'',estado:'',nome_arte:'',profissao:'',telefone_arte:'',cor_predominante:'',servicos:'',detalhes:''})
   const [foto,setFoto]=useState(null); const [logo,setLogo]=useState(null); const [loading,setLoading]=useState(false); const [ok,setOk]=useState(false); const [erro,setErro]=useState('')
   const tipo = tipos.find(t=>t.id===form.tipo_arte)
@@ -90,6 +90,62 @@ function App(){
       <button className="submit" disabled={loading}>{loading?'Enviando...':'FINALIZAR PEDIDO'}</button>
     </form>
   </main>
+}
+
+function Admin(){
+  const [pedidos,setPedidos]=useState([])
+  const [loading,setLoading]=useState(true)
+  const [erro,setErro]=useState('')
+
+  async function carregar(){
+    setLoading(true); setErro('')
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*, clientes(nome, whatsapp, cidade, estado), pagamentos(status, forma_pagamento, valor)')
+      .order('criado_em', { ascending:false })
+    if(error) setErro(error.message)
+    else setPedidos(data || [])
+    setLoading(false)
+  }
+
+  useEffect(()=>{ carregar() },[])
+
+  const hoje = new Date().toISOString().slice(0,10)
+  const pedidosHoje = pedidos.filter(p => (p.criado_em || '').slice(0,10) === hoje)
+  const faturamento = pedidos.reduce((s,p)=>s+Number(p.valor || 0),0)
+
+  function msgRecebido(p){
+    return `Olá, ${p.clientes?.nome || p.nome_arte}! Recebemos seu pedido de ${p.tipo_arte}. Vou preparar sua prévia e te envio em breve. 😊`
+  }
+
+  function msgPrevia(p){
+    return `Sua prévia está pronta! 😊\n\nCaso aprove a arte, o valor para receber a original em alta qualidade é ${money(p.valor)}.\n\nApós o pagamento confirmado, envio a versão sem marca d'água.`
+  }
+
+  async function copiar(texto){
+    await navigator.clipboard.writeText(texto)
+    alert('Mensagem copiada!')
+  }
+
+  return <main className="admin">
+    <aside className="sidebar"><h2>🎨 ArteIA</h2><a>🏠 Dashboard</a><a>📥 Pedidos</a><a>💰 Financeiro</a><a>🤖 Prompts</a></aside>
+    <section className="adminContent">
+      <div className="adminTop"><h1>Painel Administrativo</h1><button onClick={carregar}>Atualizar</button></div>
+      <div className="cardsDash"><div><span>Pedidos</span><strong>{pedidos.length}</strong></div><div><span>Hoje</span><strong>{pedidosHoje.length}</strong></div><div><span>Faturamento</span><strong>{money(faturamento)}</strong></div></div>
+      {loading && <p>Carregando pedidos...</p>}
+      {erro && <p className="erro">{erro}</p>}
+      <div className="listaPedidos">
+        {pedidos.map(p => <article className="pedidoCard" key={p.id}>
+          <div><h3>{p.nome_arte} <small>#{p.id.slice(0,8)}</small></h3><p>{p.profissao} • {p.tipo_arte} • {money(p.valor)}</p><p>Cliente: {p.clientes?.nome} | WhatsApp: {p.clientes?.whatsapp}</p><p>Status: <b>{p.status}</b> | Pagamento: <b>{p.pagamentos?.[0]?.status || 'aguardando_previa'}</b></p></div>
+          <div className="acoes"><button onClick={()=>copiar(msgRecebido(p))}>Copiar recebimento</button><button onClick={()=>copiar(msgPrevia(p))}>Copiar prévia</button></div>
+        </article>)}
+      </div>
+    </section>
+  </main>
+}
+
+function App(){
+  return window.location.pathname.startsWith('/admin') ? <Admin/> : <Formulario/>
 }
 
 createRoot(document.getElementById('root')).render(<App />)
