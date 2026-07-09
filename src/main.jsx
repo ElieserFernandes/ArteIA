@@ -19,13 +19,16 @@ function ExemploArte({ tipo }) {
 
 function Landing(){
   return <main className="landing">
-    <nav className="nav"><strong>🎨 Promova Profissional</strong><a href="/pedido">Fazer pedido</a></nav>
+    <nav className="nav"><strong>ARTE<span>IA</span><small>Arte Profissional</small></strong><a href="/pedido">Fazer pedido</a></nav>
     <section className="landingHero landingHeroSolo">
-      <div className="heroText"><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua divulgação profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
+      <div className="heroText"><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua <mark>divulgação</mark> profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
     </section>
+    <section className="benefits"><div>🛡️<span>100% Profissional</span></div><div>⚡<span>Entrega rápida</span></div><div>⭐<span>Alta qualidade</span></div></section>
+    <h2 className="sectionTitle">Escolha sua arte</h2>
     <section className="landingCards">
-      {tipos.map(t=><article key={t.id}><div className="cardHead"><h2>{t.titulo}</h2><strong>{money(t.preco)}</strong></div><p>{t.texto}</p><ExemploArte tipo={t}/></article>)}
+      {tipos.map(t=><article key={t.id} className={'produtoCard '+t.id.toLowerCase()}><ExemploArte tipo={t}/><div className="produtoInfo"><div className="cardHead"><h2>{t.titulo}</h2>{t.id==='COMBO' && <em>MAIS VENDIDO</em>}</div><p>{t.texto}</p></div><strong className="precoProduto">{money(t.preco)}</strong></article>)}
     </section>
+    <section className="stats"><div><b>+2.500</b><span>Artes entregues</span></div><div><b>4,9/5</b><span>Avaliação dos clientes</span></div><div><b>100%</b><span>Seguro</span></div></section>
     <section className="faq"><h2>Como funciona?</h2><p>Você escolhe a arte, envia foto e informações. Nós preparamos uma prévia. O pagamento só é escolhido depois que você aprovar a prévia.</p><a className="cta" href="/pedido">Pedir agora</a></section>
   </main>
 }
