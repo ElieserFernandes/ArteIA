@@ -4,17 +4,16 @@ import { supabase } from './lib/supabase'
 import './style.css'
 
 const tipos = [
-  { id:'DESENHO', titulo:'🎭 DESENHO', preco:9.90, texto:'Caricatura/mascote 3D inspirado na sua foto. Não é fotografia real.', exemplo:'Mascote 3D' },
-  { id:'ROSTO', titulo:'📸 ROSTO', preco:19.90, texto:'Arte profissional com aparência mais realista para divulgação.', exemplo:'Arte Realista' },
-  { id:'COMBO', titulo:'🔥 COMBO', preco:24.90, texto:'Receba as duas artes: DESENHO + ROSTO. Melhor custo-benefício.', exemplo:'Pacote Completo' }
+  { id:'DESENHO', titulo:'🎭 DESENHO', preco:9.90, texto:'Caricatura/mascote 3D inspirado na sua foto. Não é fotografia real.' },
+  { id:'ROSTO', titulo:'📸 ROSTO', preco:19.90, texto:'Arte profissional com aparência mais realista para divulgação.' },
+  { id:'COMBO', titulo:'🔥 COMBO', preco:24.90, texto:'Receba as duas artes: DESENHO + ROSTO. Melhor custo-benefício.' }
 ]
 
 function money(v){ return Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
 
 function ExemploArte({tipo}){
   return <div className={'exemploArte exemplo'+tipo.id}>
-    <div className="avatarFake">{tipo.id==='DESENHO'?'🎭':tipo.id==='ROSTO'?'👤':'🔥'}</div>
-    <div><strong>{tipo.exemplo}</strong><span>Imagem exemplo</span></div>
+    <span>Imagem exemplo</span>
   </div>
 }
 
