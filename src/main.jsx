@@ -75,18 +75,52 @@ function Formulario(){
       <h2>1. Escolha sua arte</h2>
       <div className="grid">{tipos.map(t=><button type="button" key={t.id} onClick={()=>set('tipo_arte',t.id)} className={'tipo '+(form.tipo_arte===t.id?'ativo':'')}><strong>{t.titulo}</strong><span>{t.texto}</span><b>{money(t.preco)}</b><ExemploArte tipo={t}/>{t.id==='COMBO' && <em>MAIS VENDIDO</em>}</button>)}</div>
       <div className="aviso">Importante: DESENHO é caricatura/mascote 3D inspirado na foto. Não é imagem real/fotográfica.</div>
-      <h2>2. Seus dados</h2><div className="cols"><input required placeholder="Nome completo" value={form.nome} onChange={e=>set('nome',e.target.value)}/><input required placeholder="WhatsApp" value={form.whatsapp} onChange={e=>set('whatsapp',e.target.value)}/></div><div className="cols"><input placeholder="Cidade" value={form.cidade} onChange={e=>set('cidade',e.target.value)}/><input placeholder="Estado" value={form.estado} onChange={e=>set('estado',e.target.value)}/></div>
+      <h2>2. Seus dados</h2>
+      <div className="cols">
+        <input required placeholder="Nome completo" autoComplete="name" value={form.nome} onChange={e=>set('nome',e.target.value)}/>
+        <input required placeholder="WhatsApp" type="tel" inputMode="tel" autoComplete="tel" value={form.whatsapp} onChange={e=>set('whatsapp',e.target.value)}/>
+      </div>
+      <div className="cols"><input placeholder="Cidade" autoComplete="address-level2" value={form.cidade} onChange={e=>set('cidade',e.target.value)}/><input placeholder="Estado" autoComplete="address-level1" value={form.estado} onChange={e=>set('estado',e.target.value)}/></div>
       <h2>3. Arquivos</h2><label className="upload">📷 Enviar foto obrigatória<input required type="file" accept="image/*" onChange={e=>setFoto(e.target.files[0])}/>{foto && <small>{foto.name}</small>}</label><label className="upload">📁 Enviar logomarca se tiver<input type="file" accept="image/*" onChange={e=>setLogo(e.target.files[0])}/>{logo && <small>{logo.name}</small>}</label>
-      <h2>4. Informações da arte</h2><input required placeholder="Nome que aparecerá na arte" value={form.nome_arte} onChange={e=>set('nome_arte',e.target.value)}/><div className="cols"><input required placeholder="Profissão" value={form.profissao} onChange={e=>set('profissao',e.target.value)}/><input placeholder="Telefone que aparecerá" value={form.telefone_arte} onChange={e=>set('telefone_arte',e.target.value)}/></div><input placeholder="Cor predominante" value={form.cor_predominante} onChange={e=>set('cor_predominante',e.target.value)}/><textarea placeholder="Serviços. Ex: Instalação elétrica, troca de padrão, manutenção..." value={form.servicos} onChange={e=>set('servicos',e.target.value)} /><textarea placeholder="Detalhes adicionais. Ex: fundo branco, sem boné, colocar escada..." value={form.detalhes} onChange={e=>set('detalhes',e.target.value)} />
+      <h2>4. Informações da arte</h2>
+      <input required placeholder="Nome que aparecerá na arte" value={form.nome_arte} onChange={e=>set('nome_arte',e.target.value)}/>
+      <div className="cols">
+        <input required placeholder="Profissão" value={form.profissao} onChange={e=>set('profissao',e.target.value)}/>
+        <input placeholder="Telefone que aparecerá" type="tel" inputMode="tel" value={form.telefone_arte} onChange={e=>set('telefone_arte',e.target.value)}/>
+      </div>
+      <input placeholder="Cor predominante" value={form.cor_predominante} onChange={e=>set('cor_predominante',e.target.value)}/>
+      <textarea placeholder="Serviços. Ex: Instalação elétrica, troca de padrão, manutenção..." value={form.servicos} onChange={e=>set('servicos',e.target.value)} />
+      <textarea placeholder="Detalhes adicionais. Ex: fundo branco, sem boné, colocar escada..." value={form.detalhes} onChange={e=>set('detalhes',e.target.value)} />
       <div className="resumo"><span>Resumo: <b>{form.tipo_arte}</b><br/><small>Pagamento será escolhido após aprovação da prévia.</small></span><strong>{money(tipo.preco)}</strong></div>{erro && <p className="erro">{erro}</p>}<button className="submit" disabled={loading}>{loading?'Enviando...':'FINALIZAR PEDIDO'}</button>
     </form>
   </main>
 }
 
+function AdminLogin({ onEntrar }){
+  const [senha,setSenha]=useState(''); const [erro,setErro]=useState('')
+  function tentar(e){
+    e.preventDefault()
+    const senhaCorreta = import.meta.env.VITE_ADMIN_PASSWORD
+    if(!senhaCorreta){ setErro('Defina VITE_ADMIN_PASSWORD na Vercel para proteger o painel.'); return }
+    if(senha === senhaCorreta){ sessionStorage.setItem('arteia_admin_ok','1'); onEntrar() }
+    else setErro('Senha incorreta.')
+  }
+  return <main className="page success">
+    <h1>🔒 Painel Administrativo</h1>
+    <form onSubmit={tentar} className="card" style={{maxWidth:340,margin:'20px auto',textAlign:'left'}}>
+      <input required type="password" placeholder="Senha" autoFocus value={senha} onChange={e=>setSenha(e.target.value)} />
+      {erro && <p className="erro">{erro}</p>}
+      <button className="submit" type="submit">Entrar</button>
+    </form>
+  </main>
+}
+
 function Admin(){
+  const [autorizado,setAutorizado]=useState(()=>sessionStorage.getItem('arteia_admin_ok')==='1')
   const [pedidos,setPedidos]=useState([]); const [loading,setLoading]=useState(true); const [erro,setErro]=useState('')
   async function carregar(){ setLoading(true); setErro(''); const { data, error } = await supabase.from('pedidos').select('*, clientes(nome, whatsapp, cidade, estado), pagamentos(status, forma_pagamento, valor)').order('criado_em', { ascending:false }); if(error) setErro(error.message); else setPedidos(data || []); setLoading(false) }
-  useEffect(()=>{ carregar() },[])
+  useEffect(()=>{ if(autorizado) carregar() },[autorizado])
+  if(!autorizado) return <AdminLogin onEntrar={()=>setAutorizado(true)} />
   const hoje = new Date().toISOString().slice(0,10); const pedidosHoje = pedidos.filter(p => (p.criado_em || '').slice(0,10) === hoje); const faturamento = pedidos.reduce((s,p)=>s+Number(p.valor || 0),0)
   function msgRecebido(p){ return `Olá, ${p.clientes?.nome || p.nome_arte}! Recebemos seu pedido de ${p.tipo_arte}. Vou preparar sua prévia e te envio em breve. 😊` }
   function msgPrevia(p){ return `Sua prévia está pronta! 😊\n\nCaso aprove a arte, o valor para receber a original em alta qualidade é ${money(p.valor)}.\n\nApós o pagamento confirmado, envio a versão sem marca d'água.` }
