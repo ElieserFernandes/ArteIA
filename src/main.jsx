@@ -4,22 +4,29 @@ import { supabase } from './lib/supabase'
 import './style.css'
 
 const tipos = [
-  { id:'DESENHO', titulo:'🎭 DESENHO', preco:9.90, texto:'Caricatura/mascote 3D inspirado na sua foto. Não é fotografia real.' },
-  { id:'ROSTO', titulo:'📸 ROSTO', preco:19.90, texto:'Arte profissional com aparência mais realista para divulgação.' },
-  { id:'COMBO', titulo:'🔥 COMBO', preco:24.90, texto:'Receba as duas artes: DESENHO + ROSTO. Melhor custo-benefício.' }
+  { id:'DESENHO', titulo:'🎭 DESENHO', preco:9.90, texto:'Caricatura/mascote 3D inspirado na sua foto. Não é fotografia real.', exemplo:'Mascote 3D' },
+  { id:'ROSTO', titulo:'📸 ROSTO', preco:19.90, texto:'Arte profissional com aparência mais realista para divulgação.', exemplo:'Arte Realista' },
+  { id:'COMBO', titulo:'🔥 COMBO', preco:24.90, texto:'Receba as duas artes: DESENHO + ROSTO. Melhor custo-benefício.', exemplo:'Pacote Completo' }
 ]
 
 function money(v){ return Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
+
+function ExemploArte({tipo}){
+  return <div className={'exemploArte exemplo'+tipo.id}>
+    <div className="avatarFake">{tipo.id==='DESENHO'?'🎭':tipo.id==='ROSTO'?'👤':'🔥'}</div>
+    <div><strong>{tipo.exemplo}</strong><span>Imagem exemplo</span></div>
+  </div>
+}
 
 function Landing(){
   return <main className="landing">
     <nav className="nav"><strong>🎨 Promova Profissional</strong><a href="/pedido">Fazer pedido</a></nav>
     <section className="landingHero">
       <div><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua divulgação profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
-      <div className="mockup"><div>🎭 DESENHO<br/><b>R$ 9,90</b></div><div>📸 ROSTO<br/><b>R$ 19,90</b></div><div>🔥 COMBO<br/><b>R$ 24,90</b></div></div>
+      <div className="mockup">{tipos.map(t=><div key={t.id}>{t.titulo}<br/><b>{money(t.preco)}</b><ExemploArte tipo={t}/></div>)}</div>
     </section>
     <section className="landingCards">
-      {tipos.map(t=><article key={t.id}><h2>{t.titulo}</h2><p>{t.texto}</p><strong>{money(t.preco)}</strong></article>)}
+      {tipos.map(t=><article key={t.id}><h2>{t.titulo}</h2><p>{t.texto}</p><strong>{money(t.preco)}</strong><ExemploArte tipo={t}/></article>)}
     </section>
     <section className="faq"><h2>Como funciona?</h2><p>Você escolhe a arte, envia foto e informações. Nós preparamos uma prévia. O pagamento só é escolhido depois que você aprovar a prévia.</p><a className="cta" href="/pedido">Pedir agora</a></section>
   </main>
@@ -65,7 +72,7 @@ function Formulario(){
     <section className="hero"><div className="badge">🎨 Promova Profissional</div><h1>Faça seu pedido</h1><p>Preencha em menos de 1 minuto e receba sua prévia.</p></section>
     <form onSubmit={enviar} className="card">
       <h2>1. Escolha sua arte</h2>
-      <div className="grid">{tipos.map(t=><button type="button" key={t.id} onClick={()=>set('tipo_arte',t.id)} className={'tipo '+(form.tipo_arte===t.id?'ativo':'')}><strong>{t.titulo}</strong><span>{t.texto}</span><b>{money(t.preco)}</b>{t.id==='COMBO' && <em>MAIS VENDIDO</em>}</button>)}</div>
+      <div className="grid">{tipos.map(t=><button type="button" key={t.id} onClick={()=>set('tipo_arte',t.id)} className={'tipo '+(form.tipo_arte===t.id?'ativo':'')}><strong>{t.titulo}</strong><span>{t.texto}</span><b>{money(t.preco)}</b><ExemploArte tipo={t}/>{t.id==='COMBO' && <em>MAIS VENDIDO</em>}</button>)}</div>
       <div className="aviso">Importante: DESENHO é caricatura/mascote 3D inspirado na foto. Não é imagem real/fotográfica.</div>
       <h2>2. Seus dados</h2><div className="cols"><input required placeholder="Nome completo" value={form.nome} onChange={e=>set('nome',e.target.value)}/><input required placeholder="WhatsApp" value={form.whatsapp} onChange={e=>set('whatsapp',e.target.value)}/></div><div className="cols"><input placeholder="Cidade" value={form.cidade} onChange={e=>set('cidade',e.target.value)}/><input placeholder="Estado" value={form.estado} onChange={e=>set('estado',e.target.value)}/></div>
       <h2>3. Arquivos</h2><label className="upload">📷 Enviar foto obrigatória<input required type="file" accept="image/*" onChange={e=>setFoto(e.target.files[0])}/>{foto && <small>{foto.name}</small>}</label><label className="upload">📁 Enviar logomarca se tiver<input type="file" accept="image/*" onChange={e=>setLogo(e.target.files[0])}/>{logo && <small>{logo.name}</small>}</label>
