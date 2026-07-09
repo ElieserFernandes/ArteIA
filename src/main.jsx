@@ -12,24 +12,29 @@ const tipos = [
 function money(v){ return Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) }
 
 function ExemploArte({ tipo }) {
-  if (tipo.id === 'DESENHO') {
-    return <div className="exemploArte exemploReal"><img src="/exemplos/desenho.svg" alt="Exemplo arte desenho" /></div>
-  }
-  if (tipo.id === 'ROSTO') {
-    return <div className="exemploArte exemploReal"><img src="/exemplos/rosto.svg" alt="Exemplo arte rosto" /></div>
-  }
+  if (tipo.id === 'DESENHO') return <div className="exemploArte exemploReal"><img src="/exemplos/desenho.svg" alt="Exemplo arte desenho" /></div>
+  if (tipo.id === 'ROSTO') return <div className="exemploArte exemploReal"><img src="/exemplos/rosto.svg" alt="Exemplo arte rosto" /></div>
   return <div className="exemploArte exemploCombo"><div className="comboGrid"><img src="/exemplos/desenho.svg" alt="Exemplo desenho" /><img src="/exemplos/rosto.svg" alt="Exemplo rosto" /></div></div>
+}
+
+function PrecoCard({ tipo }) {
+  return <article className={'precoCard '+(tipo.id === 'COMBO' ? 'destaque' : '')}>
+    {tipo.id === 'COMBO' && <em>MAIS VENDIDO</em>}
+    <h2>{tipo.titulo}</h2>
+    <p>{tipo.texto}</p>
+    <strong>{money(tipo.preco)}</strong>
+  </article>
 }
 
 function Landing(){
   return <main className="landing">
     <nav className="nav"><strong>🎨 Promova Profissional</strong><a href="/pedido">Fazer pedido</a></nav>
     <section className="landingHero">
-      <div><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua divulgação profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
-      <div className="mockup">{tipos.map(t=><div key={t.id}>{t.titulo}<br/><b>{money(t.preco)}</b><ExemploArte tipo={t}/></div>)}</div>
+      <div className="heroText"><span className="badge">Arte profissional em poucos minutos</span><h1>Transforme sua divulgação profissional</h1><p>Crie artes modernas para vender mais pelo WhatsApp, Instagram e redes sociais.</p><a className="cta" href="/pedido">FAZER MEU PEDIDO</a></div>
+      <div className="heroPrices">{tipos.map(t=><PrecoCard key={t.id} tipo={t}/>)}</div>
     </section>
     <section className="landingCards">
-      {tipos.map(t=><article key={t.id}><h2>{t.titulo}</h2><p>{t.texto}</p><strong>{money(t.preco)}</strong><ExemploArte tipo={t}/></article>)}
+      {tipos.map(t=><article key={t.id}><div className="cardHead"><h2>{t.titulo}</h2><strong>{money(t.preco)}</strong></div><p>{t.texto}</p><ExemploArte tipo={t}/></article>)}
     </section>
     <section className="faq"><h2>Como funciona?</h2><p>Você escolhe a arte, envia foto e informações. Nós preparamos uma prévia. O pagamento só é escolhido depois que você aprovar a prévia.</p><a className="cta" href="/pedido">Pedir agora</a></section>
   </main>
