@@ -9,9 +9,66 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>ArteIA — Artes profissionais para sua divulgação</title>
+  <style>
+    .admin-login-shell{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
+    .admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+    .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}
+    .admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}
+    .admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}
+    .admin-login-error{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/src/main.jsx?v=20260710-admin-fix"></script>
+  <script>
+    (function(){
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      const isAdmin = path === '/admin';
+      const authorized = sessionStorage.getItem('arteia_admin_ok') === '1';
+
+      function loadApp(){
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = '/src/main.jsx?v=20260710-admin-secure';
+        document.body.appendChild(script);
+      }
+
+      async function sha256(text){
+        const data = new TextEncoder().encode(text);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      }
+
+      if(!isAdmin || authorized){
+        loadApp();
+        return;
+      }
+
+      document.getElementById('root').innerHTML = `
+        <main class="admin-login-shell">
+          <form class="admin-login-card" id="adminLoginForm">
+            <h1>🔒 Painel Administrativo</h1>
+            <p>Digite a senha para acessar o painel.</p>
+            <input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus />
+            <div class="admin-login-error" id="adminLoginError">Senha incorreta.</div>
+            <button type="submit">ENTRAR</button>
+          </form>
+        </main>`;
+
+      document.getElementById('adminLoginForm').addEventListener('submit', async function(event){
+        event.preventDefault();
+        const value = document.getElementById('adminPassword').value;
+        const digest = await sha256(value);
+        const expected = '72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';
+        if(digest === expected){
+          sessionStorage.setItem('arteia_admin_ok','1');
+          document.getElementById('root').innerHTML = '';
+          loadApp();
+        }else{
+          document.getElementById('adminLoginError').style.display = 'block';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
