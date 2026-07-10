@@ -32,6 +32,15 @@
 
   <script>
     (function(){
+      const params = new URLSearchParams(window.location.search);
+      const view = (params.get('view') || '').toLowerCase();
+
+      if(view === 'admin'){
+        history.replaceState({}, '', '/admin');
+      }else if(view === 'pedido'){
+        history.replaceState({}, '', '/pedido');
+      }
+
       const path = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
       const isAdmin = path === '/admin';
       const authorized = sessionStorage.getItem('arteia_admin_ok') === '1';
