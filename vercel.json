@@ -1,28 +1,19 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/admin", "destination": "/index.html?route=admin&v=20260710" },
-    { "source": "/admin/", "destination": "/index.html?route=admin&v=20260710" },
-    { "source": "/pedido", "destination": "/index.html?route=pedido&v=20260710" },
-    { "source": "/pedido/", "destination": "/index.html?route=pedido&v=20260710" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/admin/", "destination": "/index.html" },
+    { "source": "/pedido", "destination": "/index.html" },
+    { "source": "/pedido/", "destination": "/index.html" },
+    { "source": "/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/admin",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" }
-      ]
-    },
-    {
-      "source": "/admin/",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
       ]
     },
     {
