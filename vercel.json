@@ -1,32 +1,7 @@
 {
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/", "destination": "/index.html" },
     { "source": "/pedido", "destination": "/index.html" },
-    { "source": "/pedido/", "destination": "/index.html" },
-    { "source": "/:path*", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/admin",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
-      ]
-    },
-    {
-      "source": "/pedido",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
-      ]
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
