@@ -1,7 +1,9 @@
 {
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
   "redirects": [
     { "source": "/admin", "destination": "/?view=admin", "permanent": false },
     { "source": "/admin/", "destination": "/?view=admin", "permanent": false },
@@ -10,6 +12,12 @@
     { "source": "/pedido", "destination": "/?view=pedido", "permanent": false },
     { "source": "/pedido/", "destination": "/?view=pedido", "permanent": false },
     { "source": "/PEDIDO", "destination": "/?view=pedido", "permanent": false },
-    { "source": "/PEDIDO/", "destination": "/?view=pedido", "permanent": false }
+    { "source": "/PEDIDO/", "destination": "/?view=pedido", "permanent": false },
+    { "source": "/acompanhar", "destination": "/?view=acompanhar", "permanent": false },
+    { "source": "/acompanhar/", "destination": "/?view=acompanhar", "permanent": false }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
