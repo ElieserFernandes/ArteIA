@@ -5,79 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
   <meta name="theme-color" content="#0f2a52" />
   <meta name="description" content="Artes profissionais para sua divulgação no WhatsApp, Instagram e redes sociais. Peça a sua em minutos." />
-  <title>ArteIA — Artes profissionais para sua divulgação</title>
+  <title>Promova Profissional — Design para sua divulgação</title>
   <style>
     #adminGate{display:none;position:fixed;inset:0;z-index:99999;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
-    #adminGate.show{display:grid}
-    .admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
-    .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}
-    .admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}
-    .admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}
-    #adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
-    body.admin-locked #root{visibility:hidden}
+    #adminGate.show{display:grid}.admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+    .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}.admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}.admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}#adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}body.admin-locked #root{visibility:hidden}
   </style>
 </head>
 <body>
   <div id="root"></div>
-
-  <div id="adminGate">
-    <form class="admin-login-card" id="adminLoginForm">
-      <h1>🔒 Painel Administrativo</h1>
-      <p>Digite a senha para acessar o painel.</p>
-      <input type="text" name="username" autocomplete="username" value="administrador" hidden />
-      <input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus />
-      <div id="adminLoginError">Senha incorreta.</div>
-      <button type="submit">ENTRAR</button>
-    </form>
-  </div>
-
+  <div id="adminGate"><form class="admin-login-card" id="adminLoginForm"><h1>🔒 Painel Profissional</h1><p>Digite a senha para acessar produção, pedidos e pagamentos.</p><input type="text" name="username" autocomplete="username" value="administrador" hidden /><input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus /><div id="adminLoginError">Senha incorreta.</div><button type="submit">ENTRAR</button></form></div>
   <script>
     (function(){
-      const params = new URLSearchParams(window.location.search);
-      const view = (params.get('view') || '').toLowerCase();
-
-      if(view === 'admin'){
-        history.replaceState({}, '', '/admin');
-      }else if(view === 'pedido'){
-        history.replaceState({}, '', '/pedido');
-      }
-
-      const originalPath = window.location.pathname.replace(/\/+$/, '') || '/';
-      const path = originalPath.toLowerCase();
-
-      if(originalPath !== path && (path === '/admin' || path === '/pedido')){
-        history.replaceState({}, '', path + window.location.search + window.location.hash);
-      }
-
-      const isAdmin = path === '/admin';
-      const authorized = sessionStorage.getItem('arteia_admin_ok') === '1';
-      const gate = document.getElementById('adminGate');
-
-      if(isAdmin && !authorized){
-        document.body.classList.add('admin-locked');
-        gate.classList.add('show');
-      }
-
-      async function sha256(text){
-        const data = new TextEncoder().encode(text);
-        const hash = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-      }
-
-      document.getElementById('adminLoginForm').addEventListener('submit', async function(event){
-        event.preventDefault();
-        const digest = await sha256(document.getElementById('adminPassword').value);
-        const expected = '72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';
-        if(digest === expected){
-          sessionStorage.setItem('arteia_admin_ok','1');
-          window.location.replace('/admin');
-        }else{
-          document.getElementById('adminLoginError').style.display = 'block';
-        }
-      });
+      const params=new URLSearchParams(window.location.search),view=(params.get('view')||'').toLowerCase();
+      if(view==='admin')history.replaceState({},'','/admin');
+      else if(view==='pedido')history.replaceState({},'','/pedido'+(params.get('tipo')?'?tipo='+encodeURIComponent(params.get('tipo')):''));
+      else if(view==='acompanhar')history.replaceState({},'','/acompanhar'+(params.get('id')?'?id='+encodeURIComponent(params.get('id')):''));
+      const originalPath=window.location.pathname.replace(/\/+$/,'')||'/',path=originalPath.toLowerCase();
+      if(originalPath!==path&&['/admin','/pedido','/acompanhar'].includes(path))history.replaceState({},'',path+window.location.search+window.location.hash);
+      const isAdmin=path==='/admin',authorized=sessionStorage.getItem('arteia_admin_ok')==='1',gate=document.getElementById('adminGate');
+      if(isAdmin&&!authorized){document.body.classList.add('admin-locked');gate.classList.add('show')}
+      async function sha256(text){const data=new TextEncoder().encode(text),hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+      document.getElementById('adminLoginForm').addEventListener('submit',async function(event){event.preventDefault();const digest=await sha256(document.getElementById('adminPassword').value),expected='72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';if(digest===expected){sessionStorage.setItem('arteia_admin_ok','1');window.location.replace('/admin')}else document.getElementById('adminLoginError').style.display='block'});
     })();
   </script>
-
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
