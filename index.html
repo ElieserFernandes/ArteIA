@@ -24,6 +24,7 @@
     <form class="admin-login-card" id="adminLoginForm">
       <h1>🔒 Painel Administrativo</h1>
       <p>Digite a senha para acessar o painel.</p>
+      <input type="text" name="username" autocomplete="username" value="administrador" hidden />
       <input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus />
       <div id="adminLoginError">Senha incorreta.</div>
       <button type="submit">ENTRAR</button>
@@ -41,7 +42,13 @@
         history.replaceState({}, '', '/pedido');
       }
 
-      const path = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
+      const originalPath = window.location.pathname.replace(/\/+$/, '') || '/';
+      const path = originalPath.toLowerCase();
+
+      if(originalPath !== path && (path === '/admin' || path === '/pedido')){
+        history.replaceState({}, '', path + window.location.search + window.location.hash);
+      }
+
       const isAdmin = path === '/admin';
       const authorized = sessionStorage.getItem('arteia_admin_ok') === '1';
       const gate = document.getElementById('adminGate');
@@ -63,8 +70,7 @@
         const expected = '72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';
         if(digest === expected){
           sessionStorage.setItem('arteia_admin_ok','1');
-          document.body.classList.remove('admin-locked');
-          gate.classList.remove('show');
+          window.location.replace('/admin');
         }else{
           document.getElementById('adminLoginError').style.display = 'block';
         }
