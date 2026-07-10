@@ -5,32 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
   <meta name="theme-color" content="#0f2a52" />
   <meta name="description" content="Artes profissionais para sua divulgação no WhatsApp, Instagram e redes sociais. Peça a sua em minutos." />
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <title>ArteIA — Artes profissionais para sua divulgação</title>
   <style>
-    .admin-login-shell{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
+    #adminGate{display:none;position:fixed;inset:0;z-index:99999;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
+    #adminGate.show{display:grid}
     .admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
     .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}
     .admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}
     .admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}
-    .admin-login-error{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
+    #adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
+    body.admin-locked #root{visibility:hidden}
   </style>
 </head>
 <body>
   <div id="root"></div>
+
+  <div id="adminGate">
+    <form class="admin-login-card" id="adminLoginForm">
+      <h1>🔒 Painel Administrativo</h1>
+      <p>Digite a senha para acessar o painel.</p>
+      <input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus />
+      <div id="adminLoginError">Senha incorreta.</div>
+      <button type="submit">ENTRAR</button>
+    </form>
+  </div>
+
   <script>
     (function(){
-      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      const path = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
       const isAdmin = path === '/admin';
       const authorized = sessionStorage.getItem('arteia_admin_ok') === '1';
+      const gate = document.getElementById('adminGate');
 
-      function loadApp(){
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = '/src/main.jsx?v=20260710-admin-secure';
-        document.body.appendChild(script);
+      if(isAdmin && !authorized){
+        document.body.classList.add('admin-locked');
+        gate.classList.add('show');
       }
 
       async function sha256(text){
@@ -39,36 +48,21 @@
         return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
       }
 
-      if(!isAdmin || authorized){
-        loadApp();
-        return;
-      }
-
-      document.getElementById('root').innerHTML = `
-        <main class="admin-login-shell">
-          <form class="admin-login-card" id="adminLoginForm">
-            <h1>🔒 Painel Administrativo</h1>
-            <p>Digite a senha para acessar o painel.</p>
-            <input id="adminPassword" type="password" placeholder="Senha" autocomplete="current-password" required autofocus />
-            <div class="admin-login-error" id="adminLoginError">Senha incorreta.</div>
-            <button type="submit">ENTRAR</button>
-          </form>
-        </main>`;
-
       document.getElementById('adminLoginForm').addEventListener('submit', async function(event){
         event.preventDefault();
-        const value = document.getElementById('adminPassword').value;
-        const digest = await sha256(value);
+        const digest = await sha256(document.getElementById('adminPassword').value);
         const expected = '72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';
         if(digest === expected){
           sessionStorage.setItem('arteia_admin_ok','1');
-          document.getElementById('root').innerHTML = '';
-          loadApp();
+          document.body.classList.remove('admin-locked');
+          gate.classList.remove('show');
         }else{
           document.getElementById('adminLoginError').style.display = 'block';
         }
       });
     })();
   </script>
+
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
