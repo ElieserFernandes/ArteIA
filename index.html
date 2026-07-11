@@ -10,6 +10,8 @@
     #adminGate{display:none;position:fixed;inset:0;z-index:99999;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
     #adminGate.show{display:grid}.admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
     .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}.admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}.admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}#adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}body.admin-locked #root{visibility:hidden}
+    .chatgptDownload{width:100%;border:0;border-radius:12px;padding:10px;background:#0ea5e9;color:#fff;font-weight:800;cursor:pointer}
+    .chatgptHint{font-size:12px;color:#cbd5e1;margin:4px 0 8px;line-height:1.35}
   </style>
 </head>
 <body>
@@ -27,6 +29,65 @@
       if(isAdmin&&!authorized){document.body.classList.add('admin-locked');gate.classList.add('show')}
       async function sha256(text){const data=new TextEncoder().encode(text),hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
       document.getElementById('adminLoginForm').addEventListener('submit',async function(event){event.preventDefault();const digest=await sha256(document.getElementById('adminPassword').value),expected='72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';if(digest===expected){sessionStorage.setItem('arteia_admin_ok','1');window.location.replace('/admin')}else document.getElementById('adminLoginError').style.display='block'});
+
+      const originalWrite=navigator.clipboard?.writeText?.bind(navigator.clipboard);
+      if(originalWrite){
+        navigator.clipboard.writeText=async function(text){
+          let value=String(text||'');
+          if(value.includes('Arte:')&&value.includes('Foto:')){
+            value=value.replace(/Foto:\s*https?:\/\/\S+/i,'Foto: ANEXAR MANUALMENTE A FOTO BAIXADA DO PEDIDO NESTA CONVERSA');
+            value=value.replace(/Logo:\s*https?:\/\/\S+/i,'Logo: ANEXAR MANUALMENTE A LOGOMARCA BAIXADA DO PEDIDO NESTA CONVERSA');
+            value+='\n\nIMPORTANTE: o ChatGPT não deve receber somente links. Baixe e anexe as imagens diretamente na conversa antes de gerar a arte.';
+          }
+          return originalWrite(value);
+        }
+      }
+
+      async function baixar(url,nome){
+        try{
+          const resposta=await fetch(url);
+          if(!resposta.ok)throw new Error('Falha ao baixar a imagem.');
+          const blob=await resposta.blob();
+          const link=document.createElement('a');
+          link.href=URL.createObjectURL(blob);link.download=nome;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+        }catch(error){window.open(url,'_blank')}
+      }
+
+      document.addEventListener('click',async function(event){
+        const button=event.target.closest('button');
+        if(!button)return;
+        if(button.textContent.includes('Limpar cancelados')){
+          event.preventDefault();event.stopImmediatePropagation();
+          if(!confirm('Excluir definitivamente todos os pedidos cancelados?'))return;
+          const password=prompt('Digite novamente a senha administrativa para confirmar:');
+          if(!password)return;
+          button.disabled=true;const antigo=button.textContent;button.textContent='Limpando...';
+          try{
+            const resposta=await fetch('/api/delete-cancelled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
+            const data=await resposta.json();
+            if(!resposta.ok)throw new Error(data.error||'Não foi possível limpar os cancelados.');
+            alert(data.deleted?`${data.deleted} pedido(s) cancelado(s) excluído(s).`:'Não havia pedidos cancelados.');
+            window.location.reload();
+          }catch(error){alert(error.message);button.disabled=false;button.textContent=antigo}
+        }
+      },true);
+
+      function melhorarCards(){
+        document.querySelectorAll('.pedidoCardPlus').forEach((card,index)=>{
+          if(card.dataset.chatgptReady==='1')return;
+          card.dataset.chatgptReady='1';
+          const actions=card.querySelector('.acoes');
+          const foto=card.querySelector('.pedidoFotoBox img');
+          if(actions&&foto){
+            const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Para usar no ChatGPT, baixe a foto e anexe o arquivo diretamente na conversa.';
+            const botao=document.createElement('button');botao.type='button';botao.className='chatgptDownload';botao.textContent='⬇️ Baixar foto para o ChatGPT';
+            botao.addEventListener('click',()=>baixar(foto.src,`foto-pedido-${index+1}.jpg`));
+            actions.prepend(dica);actions.prepend(botao);
+          }
+        })
+      }
+      new MutationObserver(melhorarCards).observe(document.getElementById('root'),{childList:true,subtree:true});
+      window.addEventListener('load',melhorarCards);
     })();
   </script>
   <script type="module" src="/src/main.jsx"></script>
