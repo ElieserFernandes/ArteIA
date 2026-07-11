@@ -10,9 +10,9 @@
     #adminGate{display:none;position:fixed;inset:0;z-index:99999;place-items:center;background:radial-gradient(circle at top,#0f2a52 0,#07111f 45%,#050914 100%);font-family:Arial,sans-serif;color:#fff;padding:20px}
     #adminGate.show{display:grid}.admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
     .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}.admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}.admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}#adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}body.admin-locked #root{visibility:hidden}
-    .chatgptDownload{width:100%;border:0;border-radius:12px;padding:10px;background:#0ea5e9;color:#fff;font-weight:800;cursor:pointer}
-    .chatgptDownload:disabled{opacity:.65;cursor:wait}
-    .chatgptHint{font-size:12px;color:#cbd5e1;margin:4px 0 8px;line-height:1.35}
+    .chatgptCopy{width:100%;border:0;border-radius:12px;padding:10px;background:#0ea5e9;color:#fff;font-weight:800;cursor:pointer}.chatgptHint{font-size:12px;color:#cbd5e1;margin:4px 0 8px;line-height:1.35}
+    .pacote10Visual{height:270px;border-radius:14px;background:linear-gradient(145deg,#071b36,#0f4c81);display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:18px;box-sizing:border-box;overflow:hidden}.pacote10Visual span{display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#fff,#dbeafe);color:#0f2a52;font-weight:900;font-size:20px;box-shadow:0 5px 14px rgba(0,0,0,.25)}.pacote10Visual span:first-child{grid-column:span 2;background:linear-gradient(145deg,#ffd166,#ff9f1c);font-size:42px}.pacote10Visual span:nth-child(2){grid-column:span 3;font-size:14px;text-align:center;padding:5px}.pacote10Badge{display:inline-block;background:#ff9f1c;color:#07111f;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900;margin-bottom:8px}.pacote10Card .exemploArte{display:none!important}.pacote10Card::before{display:none!important}.pacote10Card .pacote10Visual{height:270px;margin-bottom:14px}.pacote10Card.ativo{border-color:#ff9f1c!important;box-shadow:0 0 0 4px rgba(255,159,28,.2)!important}
+    @media(max-width:900px){.pacote10Visual{height:150px;grid-template-columns:repeat(5,1fr);padding:10px;gap:4px}.pacote10Visual span{font-size:13px}.pacote10Visual span:first-child{font-size:28px}.pacote10Card{display:grid!important;grid-template-columns:120px 1fr!important;grid-template-rows:auto auto auto!important;column-gap:14px!important}.pacote10Card .pacote10Visual{grid-column:1;grid-row:1/4;width:120px;height:150px;margin:0}.pacote10Card strong,.pacote10Card>span,.pacote10Card b{grid-column:2}}
   </style>
 </head>
 <body>
@@ -32,70 +32,29 @@
       document.getElementById('adminLoginForm').addEventListener('submit',async function(event){event.preventDefault();const digest=await sha256(document.getElementById('adminPassword').value),expected='72f5a9c15575d586f52b66d98a61a09dbb10c731fb504e38b47e6426e754f8f2';if(digest===expected){sessionStorage.setItem('arteia_admin_ok','1');window.location.replace('/admin')}else document.getElementById('adminLoginError').style.display='block'});
 
       const originalWrite=navigator.clipboard?.writeText?.bind(navigator.clipboard);
-      if(originalWrite){
-        navigator.clipboard.writeText=async function(text){
-          let value=String(text||'');
-          if(value.includes('Arte:')&&value.includes('Foto:')){
-            value=value.replace(/Foto:\s*https?:\/\/\S+/i,'Foto: COLAR A FOTO COPIADA DO PEDIDO NESTA CONVERSA');
-            value=value.replace(/Logo:\s*https?:\/\/\S+/i,'Logo: COLAR A LOGOMARCA COPIADA DO PEDIDO NESTA CONVERSA');
-            value+='\n\nIMPORTANTE: primeiro copie a imagem pelo botão do painel e cole diretamente na conversa do ChatGPT. Depois cole este prompt.';
-          }
-          return originalWrite(value);
-        }
+      if(originalWrite){navigator.clipboard.writeText=async function(text){let value=String(text||'');if(value.includes('Arte:')&&value.includes('Foto:')){value=value.replace(/Foto:\s*https?:\/\/\S+/i,'Foto: COLAR A FOTO COPIADA DO PEDIDO NESTA CONVERSA');value=value.replace(/Logo:\s*https?:\/\/\S+/i,'Logo: COLAR A LOGOMARCA COPIADA DO PEDIDO NESTA CONVERSA');value+='\n\nIMPORTANTE: primeiro copie a imagem pelo botão do painel e cole diretamente na conversa do ChatGPT. Depois cole este prompt.'}return originalWrite(value)}}
+
+      const pacotePrompts=`PACOTE: 10 ARTES PARA REDES SOCIAIS\nVALOR: R$ 49,90\n\n1. APRESENTAÇÃO PROFISSIONAL — Crie uma arte clean apresentando o profissional, com nome, profissão, cidade, telefone, logomarca e uma frase curta de confiança. Layout moderno, elegante, fundo organizado, alta legibilidade e formato 1080x1350.\n\n2. SERVIÇOS PRINCIPAIS — Crie uma arte clean destacando de 3 a 6 serviços principais, com ícones discretos, títulos objetivos, identidade visual da empresa e chamada para contato no WhatsApp. Formato 1080x1350.\n\n3. POR QUE CONTRATAR — Crie uma arte clean com 3 diferenciais competitivos, como qualidade, agilidade e confiança. Use composição minimalista, hierarquia clara e chamada para orçamento. Formato 1080x1350.\n\n4. CHAMADA PARA ORÇAMENTO — Crie uma arte clean focada em conversão, com a frase “Solicite seu orçamento”, telefone/WhatsApp em destaque, profissão, região atendida e elementos visuais relacionados ao serviço. Formato 1080x1350.\n\n5. PROBLEMA E SOLUÇÃO — Crie uma arte clean mostrando um problema comum do cliente e a solução oferecida pelo profissional. Use título forte, texto curto, cenário profissional e chamada para ação. Formato 1080x1350.\n\n6. DEPOIMENTO DE CLIENTE — Crie uma arte clean de prova social, com espaço para avaliação de 5 estrelas, depoimento curto, nome do cliente e identidade visual profissional. Formato 1080x1350.\n\n7. ANTES E DEPOIS — Crie uma arte clean comparativa, dividida em duas áreas equilibradas para antes e depois do serviço, com título, descrição curta e contato. Não invente resultados; usar imagens fornecidas. Formato 1080x1350.\n\n8. DICA PROFISSIONAL — Crie uma arte clean com uma dica útil relacionada à profissão, título educativo, explicação breve, assinatura do profissional e contato discreto. Formato 1080x1350.\n\n9. OFERTA ESPECIAL — Crie uma arte clean para promoção ou condição especial, com benefício principal, validade quando informada, chamada para WhatsApp e aviso para não inventar desconto. Formato 1080x1350.\n\n10. ENCERRAMENTO / CONTATO — Crie uma arte clean de fechamento, reforçando nome, profissão, serviços, cidade/região, WhatsApp e frase “Conte com um profissional”. Visual premium e direto. Formato 1080x1350.\n\nREGRAS GERAIS: manter a mesma identidade visual nas 10 artes; usar as cores enviadas; preservar logo e rosto; não inventar serviços, descontos ou informações; textos curtos; ótima leitura no celular; entregar versões adequadas para Instagram e WhatsApp.`;
+
+      function pacoteVisual(){return '<div class="pacote10Visual"><span>10</span><span>ARTES<br>PROFISSIONAIS</span><span>📱</span><span>📣</span><span>⭐</span><span>💬</span><span>📸</span><span>🎯</span><span>📲</span><span>✨</span></div>'}
+      function addPacote(){
+        const landing=document.querySelector('.landingCards');
+        if(landing&&!landing.querySelector('[data-pacote10]')){const a=document.createElement('a');a.dataset.pacote10='1';a.className='produtoCard produtoLink';a.href='/pedido?tipo=PACOTE10';a.innerHTML=pacoteVisual()+'<div class="produtoInfo"><span class="pacote10Badge">MELHOR PARA REDES SOCIAIS</span><div class="cardHead"><h2>📦 10 ARTES</h2></div><p>Pacote com 10 artes clean para Instagram, WhatsApp e outras redes sociais.</p><small>Clique para pedir o pacote</small></div><strong class="precoProduto">R$ 49,90</strong>';landing.appendChild(a)}
+        const grid=document.querySelector('.tipoGrid');
+        if(grid&&!grid.querySelector('[data-pacote10]')){const b=document.createElement('button');b.type='button';b.dataset.pacote10='1';b.className='tipo tipoComImagem pacote10Card';b.innerHTML=pacoteVisual()+'<strong>📦 10 ARTES</strong><span>10 artes clean e coordenadas para Instagram, WhatsApp e redes sociais.</span><b>R$ 49,90</b>';b.onclick=()=>{sessionStorage.setItem('promova_tipo_extra','PACOTE10');grid.querySelectorAll('.tipo').forEach(x=>x.classList.remove('ativo'));b.classList.add('ativo')};grid.appendChild(b);if(new URLSearchParams(location.search).get('tipo')==='PACOTE10'){sessionStorage.setItem('promova_tipo_extra','PACOTE10');setTimeout(()=>b.click(),0)}}
+        document.querySelectorAll('.pedidoCardPlus').forEach(card=>{if(card.dataset.promptsReady==='1'||!card.textContent.includes('PACOTE10'))return;card.dataset.promptsReady='1';const actions=card.querySelector('.acoes');if(actions){const btn=document.createElement('button');btn.type='button';btn.textContent='📋 Copiar os 10 prompts';btn.onclick=()=>navigator.clipboard.writeText(pacotePrompts).then(()=>alert('10 prompts copiados!'));actions.prepend(btn)}})
       }
 
-      async function copiarImagem(url){
-        if(!navigator.clipboard||!window.ClipboardItem)throw new Error('Este navegador não permite copiar imagens diretamente. Use Chrome ou Edge atualizado.');
-        const resposta=await fetch(url,{mode:'cors',cache:'no-store'});
-        if(!resposta.ok)throw new Error('Não foi possível carregar a imagem.');
-        const blobOriginal=await resposta.blob();
-        const bitmap=await createImageBitmap(blobOriginal);
-        const canvas=document.createElement('canvas');
-        canvas.width=bitmap.width;canvas.height=bitmap.height;
-        const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);bitmap.close?.();
-        const pngBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Não foi possível preparar a imagem.')),'image/png'));
-        await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob})]);
-      }
+      document.addEventListener('click',e=>{const tipo=e.target.closest('.tipo');if(tipo&&!tipo.dataset.pacote10)sessionStorage.removeItem('promova_tipo_extra')},true);
+      const originalFetch=window.fetch.bind(window);
+      window.fetch=async function(input,init={}){try{const url=typeof input==='string'?input:input.url,extra=sessionStorage.getItem('promova_tipo_extra');if(extra==='PACOTE10'&&init&&init.body&&typeof init.body==='string'&&url.includes('/rest/v1/')){let body=JSON.parse(init.body),lista=Array.isArray(body)?body:[body];if(url.includes('/pedidos'))lista.forEach(x=>{x.tipo_arte='PACOTE10';x.valor=49.90});if(url.includes('/pagamentos'))lista.forEach(x=>{x.valor=49.90});init={...init,body:JSON.stringify(Array.isArray(body)?lista:lista[0])}}}catch(_){ }return originalFetch(input,init)};
 
-      document.addEventListener('click',async function(event){
-        const button=event.target.closest('button');
-        if(!button)return;
-        if(button.textContent.includes('Limpar cancelados')){
-          event.preventDefault();event.stopImmediatePropagation();
-          if(!confirm('Excluir definitivamente todos os pedidos cancelados?'))return;
-          const password=prompt('Digite novamente a senha administrativa para confirmar:');
-          if(!password)return;
-          button.disabled=true;const antigo=button.textContent;button.textContent='Limpando...';
-          try{
-            const resposta=await fetch('/api/delete-cancelled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
-            const data=await resposta.json();
-            if(!resposta.ok)throw new Error(data.error||'Não foi possível limpar os cancelados.');
-            alert(data.deleted?`${data.deleted} pedido(s) cancelado(s) excluído(s).`:'Não havia pedidos cancelados.');
-            window.location.reload();
-          }catch(error){alert(error.message);button.disabled=false;button.textContent=antigo}
-        }
-      },true);
+      async function copiarImagem(url){if(!navigator.clipboard||!window.ClipboardItem)throw new Error('Este navegador não permite copiar imagens diretamente. Use Chrome ou Edge atualizado.');const resposta=await originalFetch(url,{mode:'cors',cache:'no-store'});if(!resposta.ok)throw new Error('Não foi possível carregar a imagem.');const blobOriginal=await resposta.blob(),bitmap=await createImageBitmap(blobOriginal),canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;canvas.getContext('2d').drawImage(bitmap,0,0);bitmap.close?.();const pngBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Não foi possível preparar a imagem.')),'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob})])}
 
-      function melhorarCards(){
-        document.querySelectorAll('.pedidoCardPlus').forEach((card)=>{
-          if(card.dataset.chatgptReady==='1')return;
-          card.dataset.chatgptReady='1';
-          const actions=card.querySelector('.acoes');
-          const foto=card.querySelector('.pedidoFotoBox img');
-          if(actions&&foto){
-            const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Clique para copiar a foto. Depois, no ChatGPT, use Ctrl+V para colar a imagem na conversa.';
-            const botao=document.createElement('button');botao.type='button';botao.className='chatgptDownload';botao.textContent='📋 Copiar foto para o ChatGPT';
-            botao.addEventListener('click',async()=>{
-              const antigo=botao.textContent;botao.disabled=true;botao.textContent='Copiando foto...';
-              try{await copiarImagem(foto.src);botao.textContent='✅ Foto copiada!';setTimeout(()=>{botao.textContent=antigo;botao.disabled=false},1800)}
-              catch(error){alert(error.message);botao.textContent=antigo;botao.disabled=false}
-            });
-            actions.prepend(dica);actions.prepend(botao);
-          }
-        })
-      }
-      new MutationObserver(melhorarCards).observe(document.getElementById('root'),{childList:true,subtree:true});
-      window.addEventListener('load',melhorarCards);
+      document.addEventListener('click',async function(event){const button=event.target.closest('button');if(!button)return;if(button.textContent.includes('Limpar cancelados')){event.preventDefault();event.stopImmediatePropagation();if(!confirm('Excluir definitivamente todos os pedidos cancelados?'))return;const password=prompt('Digite novamente a senha administrativa para confirmar:');if(!password)return;button.disabled=true;const antigo=button.textContent;button.textContent='Limpando...';try{const resposta=await originalFetch('/api/delete-cancelled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});const data=await resposta.json();if(!resposta.ok)throw new Error(data.error||'Não foi possível limpar os cancelados.');alert(data.deleted?`${data.deleted} pedido(s) cancelado(s) excluído(s).`:'Não havia pedidos cancelados.');window.location.reload()}catch(error){alert(error.message);button.disabled=false;button.textContent=antigo}}},true);
+
+      function melhorarCards(){document.querySelectorAll('.pedidoCardPlus').forEach(card=>{if(card.dataset.chatgptReady==='1')return;card.dataset.chatgptReady='1';const actions=card.querySelector('.acoes'),foto=card.querySelector('.pedidoFotoBox img');if(actions&&foto){const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Clique para copiar a foto. Depois, no ChatGPT, use Ctrl+V para colar a imagem na conversa.';const botao=document.createElement('button');botao.type='button';botao.className='chatgptCopy';botao.textContent='📋 Copiar foto para o ChatGPT';botao.onclick=async()=>{const antigo=botao.textContent;botao.disabled=true;botao.textContent='Copiando foto...';try{await copiarImagem(foto.src);botao.textContent='✅ Foto copiada!';setTimeout(()=>{botao.textContent=antigo;botao.disabled=false},1800)}catch(error){alert(error.message);botao.textContent=antigo;botao.disabled=false}};actions.prepend(dica);actions.prepend(botao)}});addPacote()}
+      new MutationObserver(melhorarCards).observe(document.getElementById('root'),{childList:true,subtree:true});window.addEventListener('load',melhorarCards);
     })();
   </script>
   <script type="module" src="/src/main.jsx"></script>
