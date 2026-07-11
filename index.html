@@ -11,6 +11,7 @@
     #adminGate.show{display:grid}.admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
     .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}.admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}.admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}#adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}body.admin-locked #root{visibility:hidden}
     .chatgptDownload{width:100%;border:0;border-radius:12px;padding:10px;background:#0ea5e9;color:#fff;font-weight:800;cursor:pointer}
+    .chatgptDownload:disabled{opacity:.65;cursor:wait}
     .chatgptHint{font-size:12px;color:#cbd5e1;margin:4px 0 8px;line-height:1.35}
   </style>
 </head>
@@ -35,22 +36,25 @@
         navigator.clipboard.writeText=async function(text){
           let value=String(text||'');
           if(value.includes('Arte:')&&value.includes('Foto:')){
-            value=value.replace(/Foto:\s*https?:\/\/\S+/i,'Foto: ANEXAR MANUALMENTE A FOTO BAIXADA DO PEDIDO NESTA CONVERSA');
-            value=value.replace(/Logo:\s*https?:\/\/\S+/i,'Logo: ANEXAR MANUALMENTE A LOGOMARCA BAIXADA DO PEDIDO NESTA CONVERSA');
-            value+='\n\nIMPORTANTE: o ChatGPT não deve receber somente links. Baixe e anexe as imagens diretamente na conversa antes de gerar a arte.';
+            value=value.replace(/Foto:\s*https?:\/\/\S+/i,'Foto: COLAR A FOTO COPIADA DO PEDIDO NESTA CONVERSA');
+            value=value.replace(/Logo:\s*https?:\/\/\S+/i,'Logo: COLAR A LOGOMARCA COPIADA DO PEDIDO NESTA CONVERSA');
+            value+='\n\nIMPORTANTE: primeiro copie a imagem pelo botão do painel e cole diretamente na conversa do ChatGPT. Depois cole este prompt.';
           }
           return originalWrite(value);
         }
       }
 
-      async function baixar(url,nome){
-        try{
-          const resposta=await fetch(url);
-          if(!resposta.ok)throw new Error('Falha ao baixar a imagem.');
-          const blob=await resposta.blob();
-          const link=document.createElement('a');
-          link.href=URL.createObjectURL(blob);link.download=nome;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
-        }catch(error){window.open(url,'_blank')}
+      async function copiarImagem(url){
+        if(!navigator.clipboard||!window.ClipboardItem)throw new Error('Este navegador não permite copiar imagens diretamente. Use Chrome ou Edge atualizado.');
+        const resposta=await fetch(url,{mode:'cors',cache:'no-store'});
+        if(!resposta.ok)throw new Error('Não foi possível carregar a imagem.');
+        const blobOriginal=await resposta.blob();
+        const bitmap=await createImageBitmap(blobOriginal);
+        const canvas=document.createElement('canvas');
+        canvas.width=bitmap.width;canvas.height=bitmap.height;
+        const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);bitmap.close?.();
+        const pngBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Não foi possível preparar a imagem.')),'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob})]);
       }
 
       document.addEventListener('click',async function(event){
@@ -73,15 +77,19 @@
       },true);
 
       function melhorarCards(){
-        document.querySelectorAll('.pedidoCardPlus').forEach((card,index)=>{
+        document.querySelectorAll('.pedidoCardPlus').forEach((card)=>{
           if(card.dataset.chatgptReady==='1')return;
           card.dataset.chatgptReady='1';
           const actions=card.querySelector('.acoes');
           const foto=card.querySelector('.pedidoFotoBox img');
           if(actions&&foto){
-            const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Para usar no ChatGPT, baixe a foto e anexe o arquivo diretamente na conversa.';
-            const botao=document.createElement('button');botao.type='button';botao.className='chatgptDownload';botao.textContent='⬇️ Baixar foto para o ChatGPT';
-            botao.addEventListener('click',()=>baixar(foto.src,`foto-pedido-${index+1}.jpg`));
+            const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Clique para copiar a foto. Depois, no ChatGPT, use Ctrl+V para colar a imagem na conversa.';
+            const botao=document.createElement('button');botao.type='button';botao.className='chatgptDownload';botao.textContent='📋 Copiar foto para o ChatGPT';
+            botao.addEventListener('click',async()=>{
+              const antigo=botao.textContent;botao.disabled=true;botao.textContent='Copiando foto...';
+              try{await copiarImagem(foto.src);botao.textContent='✅ Foto copiada!';setTimeout(()=>{botao.textContent=antigo;botao.disabled=false},1800)}
+              catch(error){alert(error.message);botao.textContent=antigo;botao.disabled=false}
+            });
             actions.prepend(dica);actions.prepend(botao);
           }
         })
