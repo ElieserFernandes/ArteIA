@@ -11,8 +11,6 @@
     #adminGate.show{display:grid}.admin-login-card{width:min(420px,100%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
     .admin-login-card h1{margin:0 0 8px;font-size:30px}.admin-login-card p{color:#cbd5e1;margin:0 0 20px}.admin-login-card input{width:100%;box-sizing:border-box;padding:15px;border:0;border-radius:14px;font-size:16px;margin-bottom:12px}.admin-login-card button{width:100%;padding:15px;border:0;border-radius:14px;background:#ffd166;color:#111;font-size:16px;font-weight:900;cursor:pointer}#adminLoginError{display:none;background:#fecaca;color:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}body.admin-locked #root{visibility:hidden}
     .chatgptDownload{width:100%;border:0;border-radius:12px;padding:10px;background:#0ea5e9;color:#fff;font-weight:800;cursor:pointer}.chatgptDownload:disabled{opacity:.65;cursor:wait}.chatgptHint{font-size:12px;color:#cbd5e1;margin:4px 0 8px;line-height:1.35}
-    .pacoteVisual{height:270px;border-radius:14px;background:linear-gradient(145deg,#071b36,#0f4c81);display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:18px;box-sizing:border-box;overflow:hidden}.pacoteVisual span{display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#fff,#dbeafe);color:#0f2a52;font-weight:900;font-size:20px;box-shadow:0 5px 14px rgba(0,0,0,.25)}.pacoteVisual span:first-child{grid-column:span 2;background:linear-gradient(145deg,#ffd166,#ff9f1c);font-size:42px}.pacoteVisual span:nth-child(2){grid-column:span 3;font-size:14px;text-align:center;padding:5px}.pacoteBadge{display:inline-block;background:#ff9f1c;color:#07111f;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900;margin-bottom:8px}.pacoteCard .exemploArte{display:none!important}.pacoteCard::before{display:none!important}.pacoteCard .pacoteVisual{height:270px;margin-bottom:14px}.pacoteCard.ativo{border-color:#ff9f1c!important;box-shadow:0 0 0 4px rgba(255,159,28,.2)!important}
-    @media(max-width:900px){.pacoteVisual{height:150px;grid-template-columns:repeat(5,1fr);padding:10px;gap:4px}.pacoteVisual span{font-size:13px}.pacoteVisual span:first-child{font-size:28px}.pacoteCard{display:grid!important;grid-template-columns:120px 1fr!important;grid-template-rows:auto auto auto!important;column-gap:14px!important}.pacoteCard .pacoteVisual{grid-column:1;grid-row:1/4;width:120px;height:150px;margin:0}.pacoteCard strong,.pacoteCard>span,.pacoteCard b{grid-column:2}}
   </style>
 </head>
 <body>
@@ -40,30 +38,6 @@
 
       function melhorarCards(){document.querySelectorAll('.pedidoCardPlus').forEach(card=>{if(card.dataset.chatgptReady==='1')return;card.dataset.chatgptReady='1';const actions=card.querySelector('.acoes'),foto=card.querySelector('.pedidoFotoBox img');if(actions&&foto){const dica=document.createElement('p');dica.className='chatgptHint';dica.textContent='Clique para copiar a foto. Depois, no ChatGPT, use Ctrl+V para colar a imagem na conversa.';const botao=document.createElement('button');botao.type='button';botao.className='chatgptDownload';botao.textContent='📋 Copiar foto para o ChatGPT';botao.addEventListener('click',async()=>{const antigo=botao.textContent;botao.disabled=true;botao.textContent='Copiando foto...';try{await copiarImagem(foto.src);botao.textContent='✅ Foto copiada!';setTimeout(()=>{botao.textContent=antigo;botao.disabled=false},1800)}catch(error){alert(error.message);botao.textContent=antigo;botao.disabled=false}});actions.prepend(dica);actions.prepend(botao)}})}
       new MutationObserver(melhorarCards).observe(document.getElementById('root'),{childList:true,subtree:true});window.addEventListener('load',melhorarCards);
-    })();
-  </script>
-
-  <script>
-    (function(){
-      const pacotes=[
-        {id:'PACOTE5',qtd:5,titulo:'5 ARTES',preco:29.90,descricao:'5 artes clean para divulgar serviços, diferenciais, orçamento e contato.',badge:'PACOTE ESSENCIAL'},
-        {id:'PACOTE7',qtd:7,titulo:'7 ARTES — SEMANA COMPLETA',preco:39.90,descricao:'Uma arte para cada dia da semana, mantendo a mesma identidade visual.',badge:'1 ARTE POR DIA'},
-        {id:'PACOTE10',qtd:10,titulo:'10 ARTES',preco:49.90,descricao:'Pacote completo para Instagram, WhatsApp e outras redes sociais.',badge:'MAIS COMPLETO'}
-      ];
-      function visual(qtd){return `<div class="pacoteVisual"><span>${qtd}</span><span>ARTES<br>PROFISSIONAIS</span><span>📱</span><span>📣</span><span>⭐</span><span>💬</span><span>📸</span><span>🎯</span><span>📲</span><span>✨</span></div>`}
-      function reais(v){return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-      function removerCombo(){document.querySelectorAll('.landingCards .produtoCard').forEach(el=>{if(el.textContent.includes('COMBO'))el.remove()});document.querySelectorAll('.tipoGrid .tipo').forEach(el=>{if(el.textContent.includes('COMBO'))el.remove()});document.querySelectorAll('[data-pacote10]').forEach(el=>el.remove())}
-      function inserirPacotes(){
-        removerCombo();
-        const landing=document.querySelector('.landingCards');
-        if(landing&&!landing.querySelector('[data-pacotes-novos]')){pacotes.forEach(p=>{const a=document.createElement('a');a.dataset.pacotesNovos='1';a.className='produtoCard produtoLink';a.href=`/pedido?tipo=${p.id}`;a.innerHTML=visual(p.qtd)+`<div class="produtoInfo"><span class="pacoteBadge">${p.badge}</span><div class="cardHead"><h2>📦 ${p.titulo}</h2></div><p>${p.descricao}</p><small>Clique para pedir este pacote</small></div><strong class="precoProduto">${reais(p.preco)}</strong>`;landing.appendChild(a)})}
-        const grid=document.querySelector('.tipoGrid');
-        if(grid&&!grid.querySelector('[data-pacotes-novos]')){pacotes.forEach(p=>{const b=document.createElement('button');b.type='button';b.dataset.pacotesNovos='1';b.dataset.tipoPacote=p.id;b.className='tipo tipoComImagem pacoteCard';b.innerHTML=visual(p.qtd)+`<strong>📦 ${p.titulo}</strong><span>${p.descricao}</span><b>${reais(p.preco)}</b>`;b.onclick=()=>{sessionStorage.setItem('promova_tipo_extra',p.id);grid.querySelectorAll('.tipo').forEach(x=>x.classList.remove('ativo'));b.classList.add('ativo')};grid.appendChild(b)});const selecionado=new URLSearchParams(location.search).get('tipo');const alvo=grid.querySelector(`[data-tipo-pacote="${selecionado}"]`);if(alvo)setTimeout(()=>alvo.click(),0)}
-      }
-      document.addEventListener('click',e=>{const tipo=e.target.closest('.tipo');if(tipo&&!tipo.dataset.tipoPacote)sessionStorage.removeItem('promova_tipo_extra')},true);
-      const fetchAnterior=window.fetch.bind(window);
-      window.fetch=async function(input,init={}){try{const url=typeof input==='string'?input:input.url;const id=sessionStorage.getItem('promova_tipo_extra');const pacote=pacotes.find(x=>x.id===id);if(pacote&&init&&init.body&&typeof init.body==='string'&&url.includes('/rest/v1/')){let body=JSON.parse(init.body),lista=Array.isArray(body)?body:[body];if(url.includes('/pedidos'))lista.forEach(x=>{x.tipo_arte=pacote.id;x.valor=pacote.preco});if(url.includes('/pagamentos'))lista.forEach(x=>{x.valor=pacote.preco});init={...init,body:JSON.stringify(Array.isArray(body)?lista:lista[0])}}}catch(_){ }return fetchAnterior(input,init)};
-      new MutationObserver(inserirPacotes).observe(document.getElementById('root'),{childList:true,subtree:true});window.addEventListener('load',inserirPacotes);
     })();
   </script>
 
