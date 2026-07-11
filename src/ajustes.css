@@ -5,12 +5,15 @@
 @media(max-width:900px){.pedidoCardPlus{grid-template-columns:1fr!important}.pedidoFotoBox{width:100%;height:190px}.pagamentoGrid,.avaliacaoForm .cols{grid-template-columns:1fr}.pagamentos-site,.avaliacao-publica{padding:16px}.adminReview{flex-direction:column}.pagamentoItem{padding:14px}.page{padding:14px!important}.page .card{padding:16px!important}.page .card>.grid{grid-template-columns:1fr!important;gap:14px!important}.page .card>.grid .tipo{display:grid!important;grid-template-columns:120px 1fr!important;grid-template-rows:auto auto auto!important;column-gap:14px!important;align-items:start!important}.page .card>.grid .tipo .exemploArte,.page .card>.grid .tipo .pacoteVisual{grid-column:1;grid-row:1/4;width:120px!important;height:150px!important;min-height:150px!important;flex:none!important;margin:0!important}.page .card>.grid .tipo strong,.page .card>.grid .tipo span,.page .card>.grid .tipo b{grid-column:2}.page .card>.grid .tipo b{margin-top:8px!important}.sidebar{position:static!important;width:100%!important}.admin{display:block!important}.sidebar button{display:inline-block;width:auto;margin:4px}.adminContent{margin:0!important}.acoes{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.page .card>.grid .tipo{grid-template-columns:92px 1fr!important;padding:10px!important}.page .card>.grid .tipo .exemploArte,.page .card>.grid .tipo .pacoteVisual{width:92px!important;height:120px!important;min-height:120px!important}.page .card>.grid .tipo strong{font-size:17px!important}.page .card>.grid .tipo span{font-size:12px!important}.page .card>.grid .tipo b{font-size:21px!important}.acoes{grid-template-columns:1fr}}
 
-/* PACOTES (5/7/10 ARTES) E COMBO */
-.pacoteVisual{border-radius:14px;background:linear-gradient(145deg,#071b36,#0f4c81);display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:18px;box-sizing:border-box;overflow:hidden}
-.pacoteVisual span{display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#fff,#dbeafe);color:#0f2a52;font-weight:900;font-size:20px;box-shadow:0 5px 14px rgba(0,0,0,.25)}
-.pacoteQtd{grid-column:span 2;background:linear-gradient(145deg,#ffd166,#ff9f1c)!important;font-size:42px!important}
-.pacoteLabel{grid-column:span 3;font-size:13px!important;text-align:center;padding:5px;line-height:1.2}
+/* PACOTES (5/7/10 ARTES) — colagem com fotos reais + selo de quantidade */
+.pacoteVisual{position:relative;border-radius:14px;background:linear-gradient(145deg,#071b36,#0f4c81);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pacoteStack{position:relative;width:62%;height:74%}
+.pacoteStack .stack{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;border:3px solid #fff;box-shadow:0 10px 22px rgba(0,0,0,.35)}
+.pacoteStack .stack1{transform:rotate(-10deg) translate(-16%,5%);z-index:1}
+.pacoteStack .stack2{transform:rotate(4deg) translate(12%,-4%);z-index:2}
+.pacoteStack .stack3{transform:rotate(-2deg) translate(-2%,12%);z-index:3}
+.pacoteQtdBadge{position:absolute;top:12px;left:12px;background:linear-gradient(145deg,#ffd166,#ff9f1c);color:#0f2a52;font-weight:900;font-size:22px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;box-shadow:0 6px 14px rgba(0,0,0,.3);z-index:4}
 .pacoteBadge{display:inline-block;background:#ff9f1c;color:#07111f;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;margin-left:8px;white-space:nowrap;vertical-align:middle}
 .precoBox{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .precoDe{color:#94a3b8;text-decoration:line-through;font-size:15px}
-@media(max-width:900px){.pacoteVisual{gap:4px;padding:10px}.pacoteVisual span{font-size:13px}.pacoteQtd{font-size:26px!important}.pacoteLabel{font-size:11px!important}}
+@media(max-width:900px){.pacoteQtdBadge{width:34px;height:34px;font-size:17px;top:8px;left:8px}}
