@@ -22,7 +22,7 @@ function saveReviews(v){localStorage.setItem('arteia_avaliacoes',JSON.stringify(
 function imgUrl(p,tipo){const arr=Array.isArray(p.arquivos)?p.arquivos:[];return arr.find(a=>a.tipo===tipo)?.url||''}
 function ExemploArte({tipo}){
   if(tipo.id==='COMBO')return <div className="exemploArte exemploCombo"><div className="comboGrid"><img src="/exemplos/desenho.svg" alt="Exemplo desenho"/><img src="/exemplos/rosto.svg" alt="Exemplo rosto"/></div></div>
-  if(tipo.qtd)return <div className="pacoteVisual"><span className="pacoteQtd">{tipo.qtd}</span><span className="pacoteLabel">ARTES<br/>PROFISSIONAIS</span><span>📱</span><span>📣</span><span>⭐</span><span>💬</span><span>📸</span><span>🎯</span><span>📲</span><span>✨</span></div>
+  if(tipo.qtd)return <div className="pacoteVisual"><div className="pacoteStack"><img className="stack stack1" src="/exemplos/rosto-exemplo.webp" alt="Exemplo de arte"/><img className="stack stack2" src="/exemplos/desenho-exemplo.webp" alt="Exemplo de arte"/><img className="stack stack3" src="/exemplos/rosto-exemplo.webp" alt="Exemplo de arte"/></div><span className="pacoteQtdBadge">{tipo.qtd}</span></div>
   return <div className="exemploArte"><img src={tipo.imagem} alt={`Exemplo ${tipo.id}`}/></div>
 }
 function Rating({value,onChange}){return <div className="ratingPicker" aria-label="Escolha de 1 a 5 estrelas">{[1,2,3,4,5].map(n=><button key={n} type="button" className={n<=value?'selected':''} onClick={()=>onChange(n)} aria-label={`${n} estrela${n>1?'s':''}`}>★</button>)}</div>}
