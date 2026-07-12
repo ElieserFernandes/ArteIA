@@ -1,20 +1,41 @@
 import { createClient } from '@supabase/supabase-js'
 
+function sendJson(res, status, payload) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  res.setHeader('Cache-Control', 'no-store')
+  return res.end(JSON.stringify(payload))
+}
+
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error('Variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY não configuradas.')
-  return createClient(url, key, { auth: { persistSession: false } })
+  if (!url || !key) {
+    throw new Error('Configure SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY nas variáveis da Vercel.')
+  }
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+}
+
+async function readBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body
+  if (typeof req.body === 'string' && req.body.trim()) {
+    try { return JSON.parse(req.body) } catch { return {} }
+  }
+  let raw = ''
+  for await (const chunk of req) raw += chunk
+  if (!raw.trim()) return {}
+  try { return JSON.parse(raw) } catch { return {} }
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' })
-
-  const adminPassword = process.env.ADMIN_PASSWORD
-  if (!adminPassword) return res.status(500).json({ error: 'ADMIN_PASSWORD não configurada na Vercel.' })
-  if (req.body?.password !== adminPassword) return res.status(401).json({ error: 'Senha administrativa inválida.' })
-
   try {
+    if (req.method !== 'POST') return sendJson(res, 405, { error: 'Método não permitido.' })
+
+    const body = await readBody(req)
+    const adminPassword = process.env.ADMIN_PASSWORD
+    if (!adminPassword) return sendJson(res, 500, { error: 'ADMIN_PASSWORD não configurada na Vercel.' })
+    if (body.password !== adminPassword) return sendJson(res, 401, { error: 'Senha administrativa inválida.' })
+
     const supabase = getSupabaseAdmin()
     const { data: cancelados, error: findError } = await supabase
       .from('pedidos')
@@ -22,7 +43,7 @@ export default async function handler(req, res) {
       .eq('status', 'cancelado')
 
     if (findError) throw findError
-    if (!cancelados?.length) return res.status(200).json({ deleted: 0 })
+    if (!cancelados?.length) return sendJson(res, 200, { deleted: 0 })
 
     const ids = cancelados.map(item => item.id)
 
@@ -35,8 +56,9 @@ export default async function handler(req, res) {
     const { error: pedidosError } = await supabase.from('pedidos').delete().in('id', ids)
     if (pedidosError) throw pedidosError
 
-    return res.status(200).json({ deleted: ids.length })
+    return sendJson(res, 200, { deleted: ids.length })
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Falha ao excluir pedidos cancelados.' })
+    console.error('delete-cancelled:', error)
+    return sendJson(res, 500, { error: error?.message || 'Falha ao excluir pedidos cancelados.' })
   }
 }
