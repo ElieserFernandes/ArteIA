@@ -2,36 +2,58 @@
   if((location.pathname.replace(/\/+$/,'')||'/')==='/') history.replaceState({},'', '/pedido'+location.search+location.hash);
 
   const exemplo='/exemplos/pacote-foto.svg';
-  const dias=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const configs={
+    PACOTE5:{quantidade:5,selo:'5 ARTES • PACOTE ESSENCIAL',rotulo:['1','2','3','4','5']},
+    PACOTE7:{quantidade:7,selo:'7 ARTES • 1 POR DIA',rotulo:['SEG','TER','QUA','QUI','SEX','SÁB','DOM']},
+    PACOTE10:{quantidade:10,selo:'10 ARTES • PACOTE COMPLETO',rotulo:['1','2','3','4','5','6','7','8','9','10']},
+    COMBO:{quantidade:8,selo:'COMBO COMPLETO • TUDO INCLUSO',rotulo:['DESENHO','ROSTO','10','7','SOCIAL','SEMANA','PLUS','VIP']}
+  };
 
-  function criarPilha7(){
+  function identificar(card){
+    const texto=(card.textContent||'').toUpperCase();
+    if(texto.includes('COMBO COMPLETO'))return 'COMBO';
+    if(texto.includes('10 ARTES'))return 'PACOTE10';
+    if(texto.includes('7 ARTES'))return 'PACOTE7';
+    if(texto.includes('5 ARTES'))return 'PACOTE5';
+    return '';
+  }
+
+  function criarPilha(tipo){
+    const cfg=configs[tipo];
     const wrap=document.createElement('div');
-    wrap.className='pilha7Artes';
-    dias.forEach((dia,index)=>{
+    wrap.className=`pilhaArtes pilha${cfg.quantidade} pilha${tipo}`;
+    wrap.setAttribute('aria-label',cfg.selo);
+
+    cfg.rotulo.forEach((rotulo,index)=>{
       const frame=document.createElement('div');
       frame.className=`arteFrame arteFrame${index+1}`;
+      frame.style.setProperty('--i',index);
+      frame.style.setProperty('--n',cfg.quantidade);
       const img=document.createElement('img');
       img.src=exemplo;
-      img.alt=`Arte de ${dia}`;
+      img.alt=`Exemplo ${rotulo}`;
+      img.style.objectPosition=`center ${18+(index%5)*16}%`;
       const tag=document.createElement('span');
-      tag.textContent=dia;
+      tag.textContent=rotulo;
       frame.append(img,tag);
       wrap.appendChild(frame);
     });
+
     const selo=document.createElement('strong');
-    selo.className='selo7Artes';
-    selo.textContent='7 ARTES • 1 POR DIA';
+    selo.className='seloPilhaArtes';
+    selo.textContent=cfg.selo;
     wrap.appendChild(selo);
     return wrap;
   }
 
-  function aplicarPilha(){
+  function aplicarPilhas(){
     document.querySelectorAll('.produtoCard, .tipo').forEach(card=>{
-      if(!/7 ARTES/.test(card.textContent||'')||card.dataset.pilha7==='1')return;
-      const visual=card.querySelector('.pacoteVisual, .exemploArte');
+      const tipo=identificar(card);
+      if(!tipo||card.dataset.pilhaPacote==='1')return;
+      const visual=card.querySelector('.pacoteVisual, .exemploArte, .pilha7Artes, .pilhaArtes');
       if(!visual)return;
-      visual.replaceWith(criarPilha7());
-      card.dataset.pilha7='1';
+      visual.replaceWith(criarPilha(tipo));
+      card.dataset.pilhaPacote='1';
     });
   }
 
@@ -59,29 +81,38 @@
   }
 
   function inserirEstilo(){
-    if(document.getElementById('pilha7Style'))return;
+    if(document.getElementById('pilhaPacotesStyle'))return;
     const style=document.createElement('style');
-    style.id='pilha7Style';
+    style.id='pilhaPacotesStyle';
     style.textContent=`
-      .pilha7Artes{position:relative;height:270px;border-radius:18px;overflow:hidden;background:linear-gradient(145deg,#0a2f59,#061a31)}
-      .arteFrame{position:absolute;width:48%;height:66%;left:26%;top:12%;border:5px solid #fff;border-radius:14px;overflow:hidden;background:#0b2d52;box-shadow:0 10px 24px rgba(0,0,0,.38);transform-origin:center center}
-      .arteFrame img{width:100%;height:100%;object-fit:cover;display:block}
-      .arteFrame span{position:absolute;right:7px;top:7px;background:#ff9f1c;color:#071b36;font-size:10px;font-weight:900;border-radius:999px;padding:4px 7px}
-      .arteFrame1{transform:translate(-42%,-2%) rotate(-15deg);z-index:1}
-      .arteFrame2{transform:translate(-28%,2%) rotate(-10deg);z-index:2}
-      .arteFrame3{transform:translate(-14%,5%) rotate(-5deg);z-index:3}
-      .arteFrame4{transform:translate(0,7%) rotate(0deg);z-index:4}
-      .arteFrame5{transform:translate(14%,5%) rotate(5deg);z-index:5}
-      .arteFrame6{transform:translate(28%,2%) rotate(10deg);z-index:6}
-      .arteFrame7{transform:translate(42%,-2%) rotate(15deg);z-index:7}
-      .selo7Artes{position:absolute;z-index:10;left:50%;bottom:10px;transform:translateX(-50%);background:#ff9f1c;color:#071b36;border-radius:999px;padding:7px 13px;font-size:12px;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.3)}
-      .tipo .pilha7Artes{height:250px;margin-bottom:12px}
-      @media(max-width:700px){.pilha7Artes,.tipo .pilha7Artes{height:220px}.arteFrame{width:46%;height:63%;left:27%;border-width:4px}.selo7Artes{font-size:11px}}
+      .pilhaArtes{position:relative;height:270px;border-radius:18px;overflow:hidden;background:linear-gradient(145deg,#0a2f59,#061a31);isolation:isolate}
+      .pilhaArtes .arteFrame{position:absolute;width:46%;height:64%;left:27%;top:11%;border:5px solid #fff;border-radius:14px;overflow:hidden;background:#0b2d52;box-shadow:0 10px 24px rgba(0,0,0,.42);transform-origin:center center;transition:transform .25s ease}
+      .pilhaArtes .arteFrame img{width:100%;height:100%;object-fit:cover;display:block}
+      .pilhaArtes .arteFrame span{position:absolute;right:6px;top:6px;max-width:88%;overflow:hidden;text-overflow:ellipsis;background:#ff9f1c;color:#071b36;font-size:9px;font-weight:900;border-radius:999px;padding:4px 7px;white-space:nowrap}
+      .pilhaArtes .arteFrame:nth-child(1){transform:translate(-48%,-3%) rotate(-17deg);z-index:1}
+      .pilhaArtes .arteFrame:nth-child(2){transform:translate(-36%,0) rotate(-13deg);z-index:2}
+      .pilhaArtes .arteFrame:nth-child(3){transform:translate(-24%,3%) rotate(-9deg);z-index:3}
+      .pilhaArtes .arteFrame:nth-child(4){transform:translate(-12%,5%) rotate(-5deg);z-index:4}
+      .pilhaArtes .arteFrame:nth-child(5){transform:translate(0,7%) rotate(0deg);z-index:5}
+      .pilhaArtes .arteFrame:nth-child(6){transform:translate(12%,5%) rotate(5deg);z-index:6}
+      .pilhaArtes .arteFrame:nth-child(7){transform:translate(24%,3%) rotate(9deg);z-index:7}
+      .pilhaArtes .arteFrame:nth-child(8){transform:translate(36%,0) rotate(13deg);z-index:8}
+      .pilhaArtes .arteFrame:nth-child(9){transform:translate(46%,-2%) rotate(16deg);z-index:9}
+      .pilhaArtes .arteFrame:nth-child(10){transform:translate(54%,-4%) rotate(19deg);z-index:10}
+      .pilhaArtes:hover .arteFrame:nth-child(odd){filter:brightness(1.04)}
+      .seloPilhaArtes{position:absolute;z-index:20;left:50%;bottom:10px;transform:translateX(-50%);background:#ff9f1c;color:#071b36;border-radius:999px;padding:7px 13px;font-size:11px;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.35)}
+      .tipo .pilhaArtes{height:250px;margin-bottom:12px}
+      .pilhaPACOTE5 .arteFrame{width:50%;left:25%}
+      .pilhaPACOTE10 .arteFrame{width:42%;left:29%;height:61%}
+      .pilhaCOMBO{background:radial-gradient(circle at 50% 20%,#174f83,#061a31 68%)}
+      .pilhaCOMBO .arteFrame{width:43%;left:28.5%;height:61%;border-color:#fff7dd}
+      .pilhaCOMBO .seloPilhaArtes{background:linear-gradient(90deg,#ffb000,#ff8a00);font-weight:950}
+      @media(max-width:700px){.pilhaArtes,.tipo .pilhaArtes{height:220px}.pilhaArtes .arteFrame{width:44%;height:61%;left:28%;border-width:4px}.pilhaPACOTE5 .arteFrame{width:48%;left:26%}.seloPilhaArtes{font-size:10px;padding:6px 10px}}
     `;
     document.head.appendChild(style);
   }
 
-  function atualizar(){inserirEstilo();aplicarPilha();adicionarProvaSocial()}
+  function atualizar(){inserirEstilo();aplicarPilhas();adicionarProvaSocial()}
   new MutationObserver(atualizar).observe(document.getElementById('root'),{childList:true,subtree:true});
   window.addEventListener('load',atualizar);
   atualizar();
