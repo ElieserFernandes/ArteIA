@@ -1,5 +1,6 @@
 (function(){
   const path=(location.pathname.replace(/\/+$/,'')||'/').toLowerCase();
+  let pedidosCapturados=[];
 
   async function lerJsonSeguro(resposta){
     const texto=await resposta.text();
@@ -7,29 +8,53 @@
     try{return JSON.parse(texto)}catch{throw new Error(`Resposta inválida do servidor (${resposta.status}).`)}
   }
 
-  function dadosCard(card){
+  const fetchAnterior=window.fetch.bind(window);
+  window.fetch=async function(input,init){
+    const resposta=await fetchAnterior(input,init);
+    try{
+      const url=typeof input==='string'?input:input?.url||'';
+      const metodo=(init?.method||'GET').toUpperCase();
+      if(path==='/admin'&&metodo==='GET'&&url.includes('/rest/v1/pedidos')){
+        const dados=await resposta.clone().json();
+        if(Array.isArray(dados)){
+          pedidosCapturados=dados;
+          setTimeout(adicionarExcluirDireto,0);
+        }
+      }
+    }catch(_){ }
+    return resposta;
+  };
+
+  function dadosCard(card,index){
+    const pedido=pedidosCapturados[index]||null;
     const nome=card.querySelector('h3')?.textContent?.trim()||'';
     const linhas=Array.from(card.querySelectorAll('p')).map(p=>p.textContent||'');
     const cliente=linhas.find(t=>t.startsWith('Cliente:'))||'';
     const partes=cliente.replace('Cliente:','').split('|').map(t=>t.trim());
-    return {nome_arte:nome,whatsapp:partes[1]||''};
+    return {pedido_id:pedido?.id||'',nome_arte:nome,whatsapp:partes[1]||''};
   }
 
-  async function excluirPedido(card,botao){
-    const dados=dadosCard(card);
+  async function excluirPedido(card,botao,index){
+    const dados=dadosCard(card,index);
+    if(!dados.pedido_id){
+      alert('Não foi possível identificar o ID deste pedido. Clique em Atualizar e tente novamente.');
+      return;
+    }
     if(!confirm(`Excluir definitivamente o pedido “${dados.nome_arte||'selecionado'}”?\n\nPedido, pagamento e arquivos vinculados serão removidos.`))return;
     const password=prompt('Digite a senha administrativa para confirmar:');
     if(!password)return;
     const original=botao.textContent;
     botao.disabled=true;botao.textContent='Excluindo...';
     try{
-      const resposta=await fetch('/api/delete-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...dados,password})});
+      const resposta=await fetchAnterior('/api/delete-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pedido_id:dados.pedido_id,password})});
       const data=await lerJsonSeguro(resposta);
       if(!resposta.ok)throw new Error(data.error||'Não foi possível excluir o pedido.');
+      if(!data.deleted||String(data.pedido_id)!==String(dados.pedido_id))throw new Error('O servidor não confirmou a exclusão do pedido correto.');
       card.style.transition='opacity .25s ease,transform .25s ease';
       card.style.opacity='0';card.style.transform='scale(.98)';
+      pedidosCapturados=pedidosCapturados.filter(p=>String(p.id)!==String(dados.pedido_id));
       setTimeout(()=>card.remove(),260);
-      alert('Pedido excluído com sucesso.');
+      alert('Pedido excluído definitivamente.');
     }catch(error){
       alert(error.message||'Falha ao excluir o pedido.');
       botao.disabled=false;botao.textContent=original;
@@ -38,12 +63,14 @@
 
   function adicionarExcluirDireto(){
     if(path!=='/admin')return;
-    document.querySelectorAll('.pedidoCardPlus').forEach(card=>{
+    document.querySelectorAll('.pedidoCardPlus').forEach((card,index)=>{
+      const pedido=pedidosCapturados[index];
+      if(pedido?.id)card.dataset.pedidoId=pedido.id;
       if(card.dataset.excluirDireto==='1')return;
       const acoes=card.querySelector('.acoes');if(!acoes)return;
       const botao=document.createElement('button');
       botao.type='button';botao.className='excluirPedidoDireto';botao.textContent='🗑️ Excluir pedido';
-      botao.onclick=()=>excluirPedido(card,botao);
+      botao.onclick=()=>excluirPedido(card,botao,index);
       acoes.appendChild(botao);card.dataset.excluirDireto='1';
     });
   }
