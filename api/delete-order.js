@@ -32,37 +32,37 @@ function storageInfo(url) {
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') return json(res, 200, { ok: true })
-  if (req.method !== 'POST') return json(res, 405, { error: `Método ${req.method} não permitido. Use POST.` })
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Allow', 'POST, OPTIONS')
+    return json(res, 200, { ok: true })
+  }
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST, OPTIONS')
+    return json(res, 405, { error: `Método ${req.method} não permitido. Use POST.` })
+  }
 
   const body = getBody(req)
   const adminPassword = process.env.ADMIN_PASSWORD
   if (!adminPassword) return json(res, 500, { error: 'ADMIN_PASSWORD não configurada na Vercel.' })
   if (body.password !== adminPassword) return json(res, 401, { error: 'Senha administrativa inválida.' })
+  if (!body.pedido_id) return json(res, 400, { error: 'ID do pedido não informado.' })
 
   try {
     const supabase = getAdmin()
-    let pedido = null
+    const pedidoId = String(body.pedido_id)
 
-    if (body.pedido_id) {
-      const busca = await supabase.from('pedidos').select('id, cliente_id, status, nome_arte').eq('id', String(body.pedido_id)).maybeSingle()
-      if (busca.error) throw busca.error
-      pedido = busca.data
-    } else if (body.nome_arte) {
-      let query = supabase.from('pedidos').select('id, cliente_id, status, nome_arte, criado_em, clientes!inner(whatsapp)').eq('nome_arte', String(body.nome_arte)).order('criado_em', { ascending: false }).limit(5)
-      if (body.whatsapp) query = query.eq('clientes.whatsapp', String(body.whatsapp))
-      const busca = await query
-      if (busca.error) throw busca.error
-      if ((busca.data || []).length > 1 && !body.whatsapp) return json(res, 409, { error: 'Há mais de um pedido com esse nome. Informe o WhatsApp do cliente.' })
-      pedido = busca.data?.[0] || null
-    } else {
-      return json(res, 400, { error: 'Pedido não informado.' })
-    }
+    const { data: pedido, error: buscaErro } = await supabase
+      .from('pedidos')
+      .select('id, cliente_id, status, nome_arte')
+      .eq('id', pedidoId)
+      .maybeSingle()
+    if (buscaErro) throw buscaErro
+    if (!pedido) return json(res, 404, { error: 'Pedido não encontrado ou já excluído.' })
 
-    if (!pedido) return json(res, 404, { error: 'Pedido não encontrado.' })
-    const pedidoId = String(pedido.id)
-
-    const { data: arquivos, error: arquivosBuscaErro } = await supabase.from('arquivos').select('url').eq('pedido_id', pedidoId)
+    const { data: arquivos, error: arquivosBuscaErro } = await supabase
+      .from('arquivos')
+      .select('url')
+      .eq('pedido_id', pedidoId)
     if (arquivosBuscaErro) throw arquivosBuscaErro
 
     const porBucket = new Map()
@@ -74,24 +74,42 @@ export default async function handler(req, res) {
     }
     for (const [bucket, paths] of porBucket.entries()) {
       if (paths.length) {
-        const removido = await supabase.storage.from(bucket).remove(paths)
-        if (removido.error) throw removido.error
+        const { error: storageError } = await supabase.storage.from(bucket).remove(paths)
+        if (storageError) throw storageError
       }
     }
 
     const { error: arquivosErro } = await supabase.from('arquivos').delete().eq('pedido_id', pedidoId)
     if (arquivosErro) throw arquivosErro
+
     const { error: pagamentosErro } = await supabase.from('pagamentos').delete().eq('pedido_id', pedidoId)
     if (pagamentosErro) throw pagamentosErro
-    const { error: pedidoErro } = await supabase.from('pedidos').delete().eq('id', pedidoId)
+
+    const { data: removidos, error: pedidoErro } = await supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', pedidoId)
+      .select('id')
     if (pedidoErro) throw pedidoErro
+    if (!removidos?.length) return json(res, 409, { error: 'O banco não confirmou a exclusão. O pedido foi mantido.' })
+
+    const { data: verificacao, error: verificacaoErro } = await supabase
+      .from('pedidos')
+      .select('id')
+      .eq('id', pedidoId)
+      .maybeSingle()
+    if (verificacaoErro) throw verificacaoErro
+    if (verificacao) return json(res, 409, { error: 'O pedido ainda existe no banco após a tentativa de exclusão.' })
 
     if (pedido.cliente_id) {
-      const { count } = await supabase.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', pedido.cliente_id)
+      const { count } = await supabase
+        .from('pedidos')
+        .select('id', { count: 'exact', head: true })
+        .eq('cliente_id', pedido.cliente_id)
       if (count === 0) await supabase.from('clientes').delete().eq('id', pedido.cliente_id)
     }
 
-    return json(res, 200, { deleted: 1, pedido_id: pedidoId })
+    return json(res, 200, { deleted: 1, pedido_id: pedidoId, persisted: true })
   } catch (error) {
     return json(res, 500, { error: error?.message || 'Falha ao excluir o pedido.' })
   }
