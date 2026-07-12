@@ -17,6 +17,10 @@
     { "source": "/acompanhar/", "destination": "/?view=acompanhar", "permanent": false }
   ],
   "routes": [
+    { "src": "/api/delete-order", "dest": "/api/delete-order.js" },
+    { "src": "/api/delete-cancelled", "dest": "/api/delete-cancelled.js" },
+    { "src": "/api/create-payment", "dest": "/api/create-payment.js" },
+    { "src": "/api/payment-webhook", "dest": "/api/payment-webhook.js" },
     { "handle": "filesystem" },
     { "src": "/.*", "dest": "/index.html" }
   ]
