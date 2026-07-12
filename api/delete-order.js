@@ -38,24 +38,30 @@ export default async function handler(req, res) {
   const adminPassword = process.env.ADMIN_PASSWORD
   if (!adminPassword) return json(res, 500, { error: 'ADMIN_PASSWORD não configurada na Vercel.' })
   if (body.password !== adminPassword) return json(res, 401, { error: 'Senha administrativa inválida.' })
-  if (!body.pedido_id) return json(res, 400, { error: 'Pedido não informado.' })
 
   try {
     const supabase = getAdmin()
-    const pedidoId = String(body.pedido_id)
+    let pedido = null
 
-    const { data: pedido, error: pedidoBuscaErro } = await supabase
-      .from('pedidos')
-      .select('id, cliente_id, status')
-      .eq('id', pedidoId)
-      .maybeSingle()
-    if (pedidoBuscaErro) throw pedidoBuscaErro
+    if (body.pedido_id) {
+      const busca = await supabase.from('pedidos').select('id, cliente_id, status, nome_arte').eq('id', String(body.pedido_id)).maybeSingle()
+      if (busca.error) throw busca.error
+      pedido = busca.data
+    } else if (body.nome_arte) {
+      let query = supabase.from('pedidos').select('id, cliente_id, status, nome_arte, criado_em, clientes!inner(whatsapp)').eq('nome_arte', String(body.nome_arte)).order('criado_em', { ascending: false }).limit(5)
+      if (body.whatsapp) query = query.eq('clientes.whatsapp', String(body.whatsapp))
+      const busca = await query
+      if (busca.error) throw busca.error
+      if ((busca.data || []).length > 1 && !body.whatsapp) return json(res, 409, { error: 'Há mais de um pedido com esse nome. Informe o WhatsApp do cliente.' })
+      pedido = busca.data?.[0] || null
+    } else {
+      return json(res, 400, { error: 'Pedido não informado.' })
+    }
+
     if (!pedido) return json(res, 404, { error: 'Pedido não encontrado.' })
+    const pedidoId = String(pedido.id)
 
-    const { data: arquivos, error: arquivosBuscaErro } = await supabase
-      .from('arquivos')
-      .select('url')
-      .eq('pedido_id', pedidoId)
+    const { data: arquivos, error: arquivosBuscaErro } = await supabase.from('arquivos').select('url').eq('pedido_id', pedidoId)
     if (arquivosBuscaErro) throw arquivosBuscaErro
 
     const porBucket = new Map()
