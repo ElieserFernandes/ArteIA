@@ -100,14 +100,14 @@
       .pilhaArtes .arteFrame:nth-child(9){transform:translate(46%,-2%) rotate(16deg);z-index:9}
       .pilhaArtes .arteFrame:nth-child(10){transform:translate(54%,-4%) rotate(19deg);z-index:10}
       .pilhaArtes:hover .arteFrame:nth-child(odd){filter:brightness(1.04)}
-      .seloPilhaArtes{position:absolute;z-index:20;left:50%;bottom:10px;transform:translateX(-50%);background:#ff9f1c;color:#071b36;border-radius:999px;padding:7px 13px;font-size:11px;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.35)}
+      .seloPilhaArtes{position:absolute;z-index:20;left:10px;right:10px;bottom:10px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:34px;background:#ff9f1c;color:#071b36;border-radius:999px;padding:7px 12px;font-size:clamp(9px,2.7vw,11px);line-height:1.1;text-align:center;white-space:normal;overflow-wrap:anywhere;box-shadow:0 5px 14px rgba(0,0,0,.35)}
       .tipo .pilhaArtes{height:250px;margin-bottom:12px}
       .pilhaPACOTE5 .arteFrame{width:50%;left:25%}
       .pilhaPACOTE10 .arteFrame{width:42%;left:29%;height:61%}
       .pilhaCOMBO{background:radial-gradient(circle at 50% 20%,#174f83,#061a31 68%)}
       .pilhaCOMBO .arteFrame{width:43%;left:28.5%;height:61%;border-color:#fff7dd}
       .pilhaCOMBO .seloPilhaArtes{background:linear-gradient(90deg,#ffb000,#ff8a00);font-weight:950}
-      @media(max-width:700px){.pilhaArtes,.tipo .pilhaArtes{height:220px}.pilhaArtes .arteFrame{width:44%;height:61%;left:28%;border-width:4px}.pilhaPACOTE5 .arteFrame{width:48%;left:26%}.seloPilhaArtes{font-size:10px;padding:6px 10px}}
+      @media(max-width:700px){.pilhaArtes,.tipo .pilhaArtes{height:220px}.pilhaArtes .arteFrame{width:44%;height:61%;left:28%;border-width:4px}.pilhaPACOTE5 .arteFrame{width:48%;left:26%}.seloPilhaArtes{left:8px;right:8px;bottom:8px;min-height:32px;padding:6px 9px;font-size:10px}}
     `;
     document.head.appendChild(style);
   }
