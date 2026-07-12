@@ -32,7 +32,8 @@ function storageInfo(url) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return json(res, 405, { error: 'Método não permitido.' })
+  if (req.method === 'OPTIONS') return json(res, 200, { ok: true })
+  if (req.method !== 'POST') return json(res, 405, { error: `Método ${req.method} não permitido. Use POST.` })
 
   const body = getBody(req)
   const adminPassword = process.env.ADMIN_PASSWORD
@@ -72,7 +73,10 @@ export default async function handler(req, res) {
       porBucket.get(info.bucket).push(info.path)
     }
     for (const [bucket, paths] of porBucket.entries()) {
-      if (paths.length) await supabase.storage.from(bucket).remove(paths)
+      if (paths.length) {
+        const removido = await supabase.storage.from(bucket).remove(paths)
+        if (removido.error) throw removido.error
+      }
     }
 
     const { error: arquivosErro } = await supabase.from('arquivos').delete().eq('pedido_id', pedidoId)
